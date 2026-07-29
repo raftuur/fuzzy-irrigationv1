@@ -1,0 +1,796 @@
+/* ==========================================
+   ROOT VARIABLES - MODERN GREEN THEME
+   ========================================== */
+:root {
+    --primary: #22C55E;
+    --primary-dark: #16A34A;
+    --primary-light: #86EFAC;
+    --bg: #F8FAFC;
+    --card: #FFFFFF;
+    --border: #E5E7EB;
+    --text: #1E293B;
+    --sub: #64748B;
+    --danger: #EF4444;
+    --warning: #F59E0B;
+    --info: #3B82F6;
+}
+
+/* ==========================================
+   BODY
+   ========================================== */
+body {
+    background: var(--bg);
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: var(--text);
+}
+
+/* ==========================================
+   SIDEBAR
+   ========================================== */
+.sidebar {
+    width: 260px;
+    min-height: 100vh;
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+}
+
+.sidebar .logo {
+    padding: 25px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--primary);
+    text-align: center;
+}
+
+.sidebar .logo span {
+    display: block;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--sub);
+    margin-top: 4px;
+}
+
+.sidebar .nav-link {
+    color: var(--sub);
+    padding: 12px 18px;
+    border-radius: 10px;
+    margin: 4px 10px;
+    transition: 0.3s ease;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.sidebar .nav-link:hover {
+    background: var(--primary);
+    color: #fff;
+    transform: translateX(4px);
+}
+
+.sidebar .nav-link.active {
+    background: var(--primary);
+    color: #fff;
+}
+
+/* ==========================================
+   SIDEBAR RESPONSIVE
+   ========================================== */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 220px !important;
+        position: fixed !important;
+        left: 0;
+        top: 0;
+        z-index: 1050;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        min-height: 100vh;
+        overflow-y: auto;
+    }
+    .sidebar.open {
+        transform: translateX(0);
+    }
+}
+
+/* ==========================================
+   MAIN CONTENT
+   ========================================== */
+.main-content {
+    flex: 1;
+}
+
+/* ==========================================
+   NAVBAR
+   ========================================== */
+.navbar-custom {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 30px;
+    animation: fadeTop 0.6s ease;
+}
+
+@keyframes fadeTop {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.navbar-custom h4 {
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--text);
+}
+
+.navbar-custom small {
+    color: var(--sub);
+    font-size: 13px;
+}
+
+/* ==========================================
+   DASHBOARD HEADER
+   ========================================== */
+.dashboard-header {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 28px 32px;
+    margin-bottom: 25px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+    animation: fadeDown 0.6s ease;
+}
+
+.dashboard-title {
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.dashboard-subtitle {
+    color: var(--sub);
+    font-size: 15px;
+    margin-top: 2px;
+}
+
+@keyframes fadeDown {
+    from {
+        opacity: 0;
+        transform: translateY(-25px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==========================================
+   SENSOR CARD
+   ========================================== */
+.sensor-card {
+    border: none;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    transition: 0.35s ease;
+    overflow: hidden;
+}
+
+.sensor-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 18px 40px rgba(34, 197, 94, 0.18);
+}
+
+.sensor-card .card-body {
+    padding: 28px;
+}
+
+.sensor-label {
+    color: #64748b;
+    font-size: 14px;
+    margin-bottom: 18px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.sensor-number {
+    font-size: 52px;
+    font-weight: 700;
+    color: #22C55E;
+    line-height: 1;
+}
+
+.sensor-number small {
+    font-size: 24px;
+    color: #64748b;
+}
+
+.sensor-status {
+    margin-top: 20px;
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+.weather-status {
+    display: inline-block;
+    padding: 12px 22px;
+    border-radius: 30px;
+    background: #DCFCE7;
+    color: #15803D;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+/* ==========================================
+   SOIL MONITOR
+   ========================================== */
+.soil-item {
+    animation: fadeUp 0.6s;
+}
+
+.soil-progress {
+    height: 14px;
+    border-radius: 20px;
+    background: #edf2f7;
+    overflow: hidden;
+}
+
+.soil-progress .progress-bar {
+    transition: width 0.8s ease;
+    background: linear-gradient(90deg, #22C55E, #16A34A);
+}
+
+.soil-average {
+    background: #DCFCE7;
+    color: #15803D;
+    padding: 8px 18px;
+    border-radius: 30px;
+    font-weight: 700;
+}
+
+.soil-status {
+    color: #64748B;
+}
+
+/* ==========================================
+   STATUS SYSTEM
+   ========================================== */
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 1px solid #edf2f7;
+}
+
+.status-item:last-child {
+    border-bottom: none;
+}
+
+.status-label {
+    color: #64748B;
+    font-size: 14px;
+}
+
+.status-value {
+    font-weight: 600;
+    color: #1E293B;
+}
+
+#systemBadge {
+    border-radius: 30px;
+    font-size: 13px;
+}
+
+/* ==========================================
+   DASHBOARD CARDS
+   ========================================== */
+.dashboard-card {
+    background: var(--card);
+    border: none;
+    border-radius: 22px;
+    overflow: hidden;
+    transition: 0.35s ease;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.04);
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeUp 0.7s forwards;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 18px 40px rgba(34, 197, 94, 0.18);
+}
+
+.dashboard-card:nth-child(1) {
+    animation-delay: 0.1s;
+}
+.dashboard-card:nth-child(2) {
+    animation-delay: 0.2s;
+}
+.dashboard-card:nth-child(3) {
+    animation-delay: 0.3s;
+}
+.dashboard-card:nth-child(4) {
+    animation-delay: 0.4s;
+}
+.dashboard-card:nth-child(5) {
+    animation-delay: 0.5s;
+}
+.dashboard-card:nth-child(6) {
+    animation-delay: 0.6s;
+}
+
+.dashboard-card .card-body {
+    padding: 24px;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==========================================
+   SENSOR VALUES (OLD - Keep for compatibility)
+   ========================================== */
+.sensor-title {
+    color: var(--sub);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.sensor-value {
+    font-size: 46px;
+    font-weight: 700;
+    color: var(--primary);
+    line-height: 1.2;
+}
+
+.sensor-value .unit {
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--sub);
+    margin-left: 4px;
+}
+
+.sensor-sub {
+    font-size: 12px;
+    color: var(--sub);
+    margin-top: 2px;
+}
+
+/* ==========================================
+   SECTION TITLE
+   ========================================== */
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+/* ==========================================
+   PROGRESS BAR
+   ========================================== */
+.progress {
+    height: 14px;
+    border-radius: 20px;
+    background: #E2E8F0;
+    overflow: hidden;
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+    transition: width 0.8s ease;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+/* Progress Colors */
+.progress-bar.bg-success {
+    background: linear-gradient(90deg, #22C55E, #16A34A) !important;
+}
+.progress-bar.bg-warning {
+    background: linear-gradient(90deg, #f59e0b, #d97706) !important;
+}
+.progress-bar.bg-info {
+    background: linear-gradient(90deg, #3b82f6, #2563eb) !important;
+}
+.progress-bar.bg-danger {
+    background: linear-gradient(90deg, #ef4444, #dc2626) !important;
+}
+
+/* ==========================================
+   TABLE
+   ========================================== */
+.table td {
+    padding: 14px 0;
+}
+
+/* ==========================================
+   FUZZY PANEL
+   ========================================== */
+.fuzzy-panel {
+    background: var(--card);
+    border-radius: 22px;
+    padding: 24px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.04);
+    height: 100%;
+}
+
+.fuzzy-panel .title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+}
+
+.fuzzy-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.fuzzy-box {
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.fuzzy-box .label {
+    font-size: 11px;
+    color: var(--sub);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.fuzzy-box .value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin-top: 2px;
+}
+
+.fuzzy-box.output {
+    background: #f0fdf4;
+    border: 1px solid #dcfce7;
+}
+
+.fuzzy-box.output .value {
+    color: var(--primary-dark);
+}
+
+/* ==========================================
+   ESP STATUS
+   ========================================== */
+.esp-status {
+    text-align: center;
+    padding: 10px 0;
+}
+
+.esp-status .icon {
+    font-size: 42px;
+}
+
+.esp-status .status {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 4px 0;
+}
+
+.esp-status .time {
+    font-size: 12px;
+    color: var(--sub);
+}
+
+/* ==========================================
+   CHART BOX
+   ========================================== */
+.chart-box {
+    background: var(--card);
+    border-radius: 22px;
+    padding: 20px 24px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.04);
+}
+
+.chart-box .title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chart-box .title .badge {
+    font-weight: 400;
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+.chart-box canvas {
+    max-height: 200px;
+    width: 100% !important;
+}
+
+/* ==========================================
+   STATUS CHIP
+   ========================================== */
+.status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.status-chip .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+.status-chip.online {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-chip.online .dot {
+    background: #22C55E;
+}
+
+.status-chip.offline {
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.status-chip.offline .dot {
+    background: #ef4444;
+}
+
+@keyframes pulse-dot {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(0.8);
+    }
+}
+
+/* ==========================================
+   STATUS KESEHATAN TANAH
+   ========================================== */
+.status-kesehatan {
+    padding: 14px 18px;
+    border-radius: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.status-kesehatan.optimal {
+    background: #f0fdf4;
+    border: 1px solid #dcfce7;
+}
+
+.status-kesehatan.cukup {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+}
+
+.status-kesehatan.kering {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+}
+
+.status-kesehatan.lembab {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+}
+
+/* ==========================================
+   CONTROL PANEL
+   ========================================== */
+.mode-wrapper {
+    display: flex;
+    gap: 15px;
+}
+
+.btn-mode {
+    flex: 1;
+    padding: 14px;
+    border-radius: 14px;
+    border: 2px solid #dbe4ea;
+    background: #fff;
+    font-weight: 600;
+    transition: 0.3s ease;
+}
+
+.btn-mode:hover {
+    background: #22c55e;
+    color: #fff;
+    border-color: #22c55e;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(34, 197, 94, 0.25);
+}
+
+.btn-mode.active {
+    background: #22c55e;
+    color: #fff;
+    border-color: #22c55e;
+    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+}
+
+.btn-mode:active {
+    transform: scale(0.96);
+}
+
+/* Status Online/Offline */
+.status-online {
+    display: inline-block;
+    background: #dcfce7;
+    color: #15803d;
+    padding: 8px 18px;
+    border-radius: 30px;
+    font-weight: 600;
+}
+
+.status-offline {
+    display: inline-block;
+    background: #fee2e2;
+    color: #b91c1c;
+    padding: 8px 18px;
+    border-radius: 30px;
+    font-weight: 600;
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+@media (max-width: 768px) {
+    .navbar-custom {
+        padding: 12px 16px;
+    }
+    .navbar-custom h4 {
+        font-size: 16px;
+    }
+    .dashboard-title {
+        font-size: 22px;
+    }
+    .dashboard-header {
+        padding: 18px 20px;
+    }
+    .sensor-number {
+        font-size: 38px;
+    }
+    .sensor-value {
+        font-size: 32px;
+    }
+    .fuzzy-grid {
+        grid-template-columns: 1fr;
+    }
+    .dashboard-card .card-body {
+        padding: 16px;
+    }
+    .sensor-card .card-body {
+        padding: 20px;
+    }
+    .mode-wrapper {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .weather-status {
+        font-size: 15px;
+        padding: 8px 16px;
+    }
+    .soil-average {
+        font-size: 14px;
+        padding: 6px 14px;
+    }
+    .status-item {
+        padding: 12px 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .sensor-number {
+        font-size: 30px;
+    }
+    .sensor-value {
+        font-size: 26px;
+    }
+    .chart-box {
+        padding: 14px 16px;
+    }
+    .chart-box canvas {
+        max-height: 140px;
+    }
+    .sensor-card .card-body {
+        padding: 16px;
+    }
+    .status-item {
+        padding: 10px 0;
+        font-size: 13px;
+    }
+    .status-label {
+        font-size: 13px;
+    }
+    .status-value {
+        font-size: 13px;
+    }
+}
+
+/* ==========================================
+   UTILITY
+   ========================================== */
+.text-primary-custom {
+    color: var(--primary);
+}
+
+.bg-primary-custom {
+    background: var(--primary);
+}
+
+.shadow-hover:hover {
+    box-shadow: 0 18px 40px rgba(34, 197, 94, 0.18);
+}
+
+.transition-all {
+    transition: all 0.3s ease;
+}
+
+/* ==========================================
+   ROW ANIMATION
+   ========================================== */
+.row-animate {
+    animation: fadeUp 0.6s ease;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(25px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==========================================
+   BUTTON ACTIVE/INACTIVE STATE
+   ========================================== */
+.btn-active {
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
+    transform: scale(1.02);
+}
+
+.btn-inactive {
+    opacity: 0.65;
+}
