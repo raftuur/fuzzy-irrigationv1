@@ -5,7 +5,7 @@ namespace App\Controllers;
 use App\Models\RiwayatModel;
 use App\Models\KontrolModel;
 use App\Models\SettingModel;
-use App\Models\DeviceModel; // <-- TAMBAHKAN INI
+use App\Models\DeviceModel;
 use CodeIgniter\RESTful\ResourceController;
 
 class ApiController extends ResourceController
@@ -14,6 +14,11 @@ class ApiController extends ResourceController
 
     public function sensor()
     {
+        // ========== LOGGING UNTUK DEBUG ==========
+        log_message('error', 'POST : ' . json_encode($this->request->getPost()));
+        log_message('error', 'RAW  : ' . $this->request->getBody());
+        // ==========================================
+
         $riwayat = new RiwayatModel();
         $kontrol = new KontrolModel();
 
