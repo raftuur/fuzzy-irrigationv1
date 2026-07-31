@@ -246,9 +246,17 @@ fetch("<?= base_url('api/dashboard') ?>")
     // 4. STATUS DARI DEVICE
     // ======================
     if(d){
-        document.getElementById("mode").innerHTML = d.mode;
-        document.getElementById("pompa").innerHTML = d.pompa;
-        document.getElementById("zona").innerHTML = d.zona;
+        // Mode dengan huruf kapital
+        document.getElementById("mode").innerHTML =
+            d.mode === "manual" ? "Manual" : "Otomatis";
+
+        // Status Pompa dengan teks jelas
+        document.getElementById("pompa").innerHTML =
+            d.pompa === "on" ? "Menyala" : "Mati";
+
+        // Zona dengan format "Zona A"
+        document.getElementById("zona").innerHTML =
+            "Zona " + d.zona;
 
         document.getElementById("zonaAktif").innerHTML = d.zona;
 
@@ -445,71 +453,5 @@ document.getElementById("zonaSelect").onchange=function(){
 loadDashboard();
 
 setInterval(loadDashboard,3000);
-
-const chartLabels = <?= json_encode(array_map(fn($d) => date('H:i', strtotime($d['tanggal'])), $chartData)); ?>;
-const suhuData = <?= json_encode(array_column($chartData, 'suhu')); ?>;
-const kelembapanData = <?= json_encode(array_column($chartData, 'kelembapan')); ?>;
-
-let monitoringChart = null;
-
-window.addEventListener("load", function () {
-
-    const canvas = document.getElementById("monitoringChart");
-
-    if (!canvas) return;
-
-    monitoringChart = new Chart(canvas.getContext("2d"), {
-
-        type: "line",
-
-        data: {
-
-            labels: chartLabels,
-
-            datasets: [
-
-                {
-                    label: "Suhu (°C)",
-                    data: suhuData,
-                    borderColor: "#ef4444",
-                    backgroundColor: "rgba(239,68,68,.15)",
-                    tension: .35,
-                    fill: false
-                },
-
-                {
-                    label: "Kelembapan (%)",
-                    data: kelembapanData,
-                    borderColor: "#3b82f6",
-                    backgroundColor: "rgba(59,130,246,.15)",
-                    tension: .35,
-                    fill: false
-                }
-
-            ]
-
-        },
-
-        options: {
-
-            responsive: true,
-            maintainAspectRatio: false,
-
-            interaction: {
-                mode: "index",
-                intersect: false
-            },
-
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-
-        }
-
-    });
-
-});
 
 </script>
