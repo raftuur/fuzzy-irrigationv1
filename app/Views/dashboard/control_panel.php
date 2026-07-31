@@ -66,7 +66,7 @@
 
                     <span>Firmware</span>
 
-                    <strong>v1.0</strong>
+                    <strong id="firmwareVersion">v1.0</strong>
 
                 </div>
 

@@ -269,10 +269,16 @@ fetch("<?= base_url('api/dashboard') ?>")
 
         document.getElementById("lastUpdateCuaca").innerHTML =
             "Update: " + d.last_update;
+
+        // ======================
+        // 6. UPDATE DEVICE INFO DINAMIS
+        // ======================
+        document.getElementById("deviceName").innerHTML = d.id_device || "ESP32-001";
+        document.getElementById("firmwareVersion").innerHTML = d.firmware || "v1.0";
     }
 
     // ======================
-    // 6. DATA RIWAYAT
+    // 7. DATA RIWAYAT
     // ======================
     if(!r) return;
 

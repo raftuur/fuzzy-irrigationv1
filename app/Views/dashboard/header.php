@@ -54,7 +54,7 @@
 
             Node :
 
-            <strong>ESP32-001</strong>
+            <strong id="deviceName">ESP32-001</strong>
 
         </div>
 
