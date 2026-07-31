@@ -49,7 +49,7 @@ class ApiController extends ResourceController
 
             $mode = $current['mode'];
 
-            $pompa = $this->request->getVar('p') ?? $current['pompa'];
+            $pompa = $current['pompa'];
 
             $zona = $this->request->getVar('z');
 
