@@ -134,6 +134,8 @@ class ApiController extends ResourceController
     {
         $kontrol = new \App\Models\KontrolModel();
 
+        log_message('error', 'KONTROL POST: ' . json_encode($this->request->getPost()));
+
         $mode = $this->request->getVar('mode') ?? 'otomatis';
         $pompa = $this->request->getVar('pompa') ?? 'off';
         $zona = $this->request->getVar('zona') ?? 'A';
