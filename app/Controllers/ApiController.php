@@ -247,6 +247,19 @@ class ApiController extends ResourceController
 
         $lastDevice = $device->find('ESP32-001');
 
+        // ======================
+        // HITUNG STATUS ONLINE BERDASARKAN LAST_UPDATE
+        // ======================
+        if ($lastDevice) {
+
+            $selisih = time() - strtotime($lastDevice['last_update']);
+
+            $lastDevice['online'] = ($selisih <= 15);
+
+            $lastDevice['selisih_detik'] = $selisih;
+
+        }
+
         $history = $riwayat
             ->select('tanggal, suhu, kelembapan, tanah_a, tanah_b, tanah_c, tanah_d')
             ->orderBy('id_riwayat', 'DESC')

@@ -187,13 +187,13 @@ fetch("<?= base_url('api/dashboard') ?>")
     if (!d) return;
 
     // ======================
-    // 1. STATUS ONLINE/OFFLINE
+    // 1. STATUS ONLINE/OFFLINE (BERDASARKAN LAST_UPDATE)
     // ======================
     const systemStatus = document.getElementById("systemStatus");
     const systemBadge = document.getElementById("systemBadge");
     const esp32Status = document.getElementById("esp32Status");
 
-    if(d.status === "Online"){
+    if(d.online === true){
         systemStatus.innerHTML = "Online";
         systemStatus.className = "badge bg-success";
 
@@ -378,7 +378,7 @@ document.getElementById("btnAuto").onclick=function(){
     simpanKontrol({
 
         mode:"otomatis",
-        pompa:document.getElementById("pompa").innerHTML.toLowerCase(),
+        pompa:document.getElementById("pompaStatus").innerText.toLowerCase(),
         zona:document.getElementById("zonaSelect").value
 
     });
@@ -393,7 +393,7 @@ document.getElementById("btnManual").onclick=function(){
     simpanKontrol({
 
         mode:"manual",
-        pompa:document.getElementById("pompa").innerHTML.toLowerCase(),
+        pompa:document.getElementById("pompaStatus").innerText.toLowerCase(),
         zona:document.getElementById("zonaSelect").value
 
     });
