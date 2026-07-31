@@ -7,9 +7,7 @@ use CodeIgniter\Model;
 class DeviceModel extends Model
 {
     protected $table = 'device';
-
     protected $primaryKey = 'id_device';
-
     protected $returnType = 'array';
 
     protected $allowedFields = [
@@ -19,6 +17,11 @@ class DeviceModel extends Model
         'status',
         'ip_address',
         'firmware',
-        'last_update'
+        'last_update',
+        'mode',
+        'pompa',
+        'zona',
+        'durasi',
+        'status_hujan'
     ];
 }

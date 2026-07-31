@@ -119,21 +119,33 @@ class ApiController extends ResourceController
 
         // ========== UPDATE STATUS DEVICE ==========
         $idDevice = $this->request->getPost('id_device') ?? 'ESP32-001';
+        $firmware = $this->request->getPost('firmware') ?? 'v1.0';
 
         $deviceModel = new DeviceModel();
 
-        $device = $deviceModel->find($idDevice);
-
         $dataDevice = [
-            'status'      => 'Online',
-            'ip_address'  => $this->request->getIPAddress(),
-            'last_update' => date('Y-m-d H:i:s')
+            'status'        => 'Online',
+            'ip_address'    => $this->request->getIPAddress(),
+            'firmware'      => $firmware,
+            'last_update'   => date('Y-m-d H:i:s'),
+
+            // Status realtime
+            'mode'          => $mode,
+            'pompa'         => $pompa,
+            'zona'          => $zona,
+            'durasi'        => $durasi,
+            'status_hujan'  => $status_hujan,
         ];
+
+        $device = $deviceModel->find($idDevice);
 
         if ($device) {
             $deviceModel->update($idDevice, $dataDevice);
         } else {
             $dataDevice['id_device'] = $idDevice;
+            $dataDevice['nama_device'] = 'ESP32 Penyiram';
+            $dataDevice['lokasi'] = 'Green House';
+
             $deviceModel->insert($dataDevice);
         }
 
