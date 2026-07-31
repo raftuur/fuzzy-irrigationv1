@@ -49,7 +49,11 @@ class ApiController extends ResourceController
 
             $mode = $current['mode'];
 
-            $pompa = $current['pompa'];
+            if ($mode == 'otomatis') {
+                $pompa = $this->request->getVar('p') ?? 'off';
+            } else {
+                $pompa = $current['pompa'];
+            }
 
             $zona = $this->request->getVar('z');
 
