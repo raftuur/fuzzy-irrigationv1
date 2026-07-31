@@ -182,7 +182,11 @@ class ApiController extends ResourceController
 
         return $this->response->setJSON([
             'status' => 'success',
-            'message' => 'Konfigurasi berhasil disimpan'
+            'mode'   => $mode,
+            'pompa'  => $pompa,
+            'zona'   => $zona,
+            'last'   => $last,
+            'result' => $result
         ]);
     }
 
