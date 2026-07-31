@@ -15,9 +15,18 @@ class ApiController extends ResourceController
     public function sensor()
     {
         // ========== LOGGING UNTUK DEBUG ==========
-        log_message('error', 'POST : ' . json_encode($this->request->getPost()));
-        log_message('error', 'RAW  : ' . $this->request->getBody());
+        log_message('info', 'POST : ' . json_encode($this->request->getPost()));
+        log_message('debug', 'RAW : ' . $this->request->getBody());
         // ==========================================
+
+        // ========== VALIDASI API KEY ==========
+        $apiKey = $this->request->getVar('api_key');
+        if ($apiKey !== 'FuzzyIrigasi2026') {
+            return $this->response
+                ->setStatusCode(401)
+                ->setBody('INVALID_API_KEY');
+        }
+        // ======================================
 
         $riwayat = new RiwayatModel();
         $kontrol = new KontrolModel();
@@ -33,9 +42,21 @@ class ApiController extends ResourceController
         $rain = $this->request->getVar('rain');
         $durasi = $this->request->getVar('durasi') ?? 0;
 
-        if ($a === null || $suhu === null) {
-            return $this->response->setBody("NO_DATA_RECEIVED");
+        // ========== VALIDASI DATA LENGKAP ==========
+        if (
+            $a === null ||
+            $b === null ||
+            $c === null ||
+            $d === null ||
+            $suhu === null ||
+            $hum === null ||
+            $rain === null
+        ) {
+            return $this->response
+                ->setStatusCode(400)
+                ->setBody("NO_DATA_RECEIVED");
         }
+        // ===========================================
 
         $status_hujan = ($rain < 1000) ? 'hujan' : 'cerah';
 
@@ -84,20 +105,40 @@ class ApiController extends ResourceController
             'durasi_penyiraman'   => $durasi,
         ];
 
-        $riwayat->insert($data);
+        // ========== TRANSACTION DATABASE ==========
+        $db = \Config\Database::connect();
+        $db->transStart();
 
-        // ==========================================
-        // UPDATE STATUS DEVICE
-        // ==========================================
+        // Simpan riwayat
+        if (!$riwayat->insert($data)) {
+            $db->transRollback();
+            return $this->response
+                ->setStatusCode(500)
+                ->setBody('FAILED_SAVE_DATA');
+        }
+
+        // ========== UPDATE STATUS DEVICE ==========
         $idDevice = $this->request->getPost('id_device') ?? 'ESP32-001';
 
         $deviceModel = new DeviceModel();
 
-        $deviceModel->update($idDevice, [
+        $device = $deviceModel->find($idDevice);
+
+        $dataDevice = [
             'status'      => 'Online',
             'ip_address'  => $this->request->getIPAddress(),
             'last_update' => date('Y-m-d H:i:s')
-        ]);
+        ];
+
+        if ($device) {
+            $deviceModel->update($idDevice, $dataDevice);
+        } else {
+            $dataDevice['id_device'] = $idDevice;
+            $deviceModel->insert($dataDevice);
+        }
+
+        $db->transComplete();
+        // ==========================================
 
         return $this->response->setBody(
             $mode . "," . $pompa . "," . $zona
