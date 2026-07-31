@@ -14,6 +14,17 @@ function counter(id, value) {
 }
 
 /* ===========================
+   Set Manual Control
+=========================== */
+function setManualControl(enabled){
+
+    document.getElementById("zonaSelect").disabled = !enabled;
+    document.getElementById("btnPompaOn").disabled = !enabled;
+    document.getElementById("btnPompaOff").disabled = !enabled;
+
+}
+
+/* ===========================
    Soil Monitor
 =========================== */
 function updateSoil(zona, nilai) {
@@ -194,11 +205,19 @@ fetch("<?= base_url('api/dashboard') ?>")
     const btnManual = document.getElementById("btnManual");
 
     if(d.mode === "otomatis"){
+
         btnAuto.classList.add("active");
         btnManual.classList.remove("active");
+
+        setManualControl(false);
+
     } else {
+
         btnManual.classList.add("active");
         btnAuto.classList.remove("active");
+
+        setManualControl(true);
+
     }
 
     // ======================
@@ -240,6 +259,16 @@ fetch("<?= base_url('api/dashboard') ?>")
         // ======================
         document.getElementById("lastUpdate").innerHTML = d.last_update;
         document.getElementById("lastUpdatePanel").innerHTML = d.last_update;
+
+        // Update last update untuk setiap card sensor
+        document.getElementById("lastUpdateSuhu").innerHTML =
+            "Update: " + d.last_update;
+
+        document.getElementById("lastUpdateKelembapan").innerHTML =
+            "Update: " + d.last_update;
+
+        document.getElementById("lastUpdateCuaca").innerHTML =
+            "Update: " + d.last_update;
     }
 
     // ======================
@@ -253,6 +282,17 @@ fetch("<?= base_url('api/dashboard') ?>")
     counter("kelembapan", r.kelembapan);
 
     document.getElementById("hujan").innerHTML = r.status_hujan.toUpperCase();
+
+    // Update badge cuaca berdasarkan status hujan
+    const badgeCuaca = document.getElementById("badgeCuaca");
+
+    if (r.status_hujan.toLowerCase() === "hujan") {
+        badgeCuaca.className = "badge bg-info";
+        badgeCuaca.innerHTML = "Hujan";
+    } else {
+        badgeCuaca.className = "badge bg-warning text-dark";
+        badgeCuaca.innerHTML = "Cerah";
+    }
 
     updateSoil("A", r.tanah_a);
     updateSoil("B", r.tanah_b);
@@ -269,12 +309,9 @@ fetch("<?= base_url('api/dashboard') ?>")
     );
     document.getElementById("avgSoil").innerHTML = avg + "%";
 
-    // Progress suhu
-    const suhuValue = parseFloat(r.suhu) || 0;
-    document.getElementById("progressSuhu").style.width =
-        Math.min((suhuValue / 50) * 100, 100) + "%";
-
+    // Badge Suhu (tetap dipakai)
     const badgeSuhu = document.getElementById("badgeSuhu");
+    const suhuValue = parseFloat(r.suhu) || 0;
     if (suhuValue < 25) {
         badgeSuhu.className = "badge bg-info";
         badgeSuhu.innerText = "Rendah";
@@ -286,11 +323,9 @@ fetch("<?= base_url('api/dashboard') ?>")
         badgeSuhu.innerText = "Tinggi";
     }
 
-    // Progress kelembapan
-    const kelembapanValue = parseFloat(r.kelembapan) || 0;
-    document.getElementById("progressKelembapan").style.width = kelembapanValue + "%";
-
+    // Badge Kelembapan (tetap dipakai)
     const badgeKelembapan = document.getElementById("badgeKelembapan");
+    const kelembapanValue = parseFloat(r.kelembapan) || 0;
     if (kelembapanValue < 40) {
         badgeKelembapan.className = "badge bg-warning";
         badgeKelembapan.innerText = "Kering";

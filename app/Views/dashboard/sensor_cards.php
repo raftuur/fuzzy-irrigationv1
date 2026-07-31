@@ -42,21 +42,8 @@
 
                 </div>
 
-                <div class="progress mt-3" style="height:8px;">
-
-                    <div
-                        id="progressSuhu"
-                        class="progress-bar bg-danger"
-                        style="width:0%">
-
-                    </div>
-
-                </div>
-
-                <div class="sensor-status mt-2">
-
-                    Realtime Monitoring
-
+                <div id="lastUpdateSuhu" class="sensor-status mt-2">
+                    Menunggu data...
                 </div>
 
             </div>
@@ -103,21 +90,8 @@
 
                 </div>
 
-                <div class="progress mt-3" style="height:8px;">
-
-                    <div
-                        id="progressKelembapan"
-                        class="progress-bar bg-primary"
-                        style="width:0%">
-
-                    </div>
-
-                </div>
-
-                <div class="sensor-status mt-2">
-
-                    Realtime Monitoring
-
+                <div id="lastUpdateKelembapan" class="sensor-status mt-2">
+                    Menunggu data...
                 </div>
 
             </div>
@@ -164,10 +138,8 @@
 
                 </div>
 
-                <div class="sensor-status mt-3">
-
-                    Sensor Hujan
-
+                <div id="lastUpdateCuaca" class="sensor-status mt-3">
+                    Menunggu data...
                 </div>
 
             </div>

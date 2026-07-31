@@ -88,15 +88,15 @@
 
                 <h5 class="section-title mb-4">
 
-                    <i class="bi bi-droplet-half"></i>
+                    <i class="bi bi-sliders"></i>
 
-                    Kontrol Manual
+                    Kontrol Sistem
 
                 </h5>
 
-                <label class="form-label">
+                <label class="form-label fw-semibold">
 
-                    Zona Penyiraman
+                    Pilih Zona Irigasi
 
                 </label>
 

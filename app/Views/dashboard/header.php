@@ -8,7 +8,7 @@
 
         <div class="dashboard-subtitle">
 
-            Sistem Penyiram Tanaman Berbasis Fuzzy Logic
+            Monitoring dan Kontrol Irigasi Berbasis ESP32 & Fuzzy Logic
 
         </div>
 
@@ -34,7 +34,7 @@
 
             <span class="dot"></span>
 
-            <span id="statusText">Device Online</span>
+            <span id="statusText">ESP32 Online</span>
 
         </span>
 
@@ -52,7 +52,7 @@
 
             <i class="bi bi-cpu"></i>
 
-            Device :
+            Node :
 
             <strong>ESP32-001</strong>
 

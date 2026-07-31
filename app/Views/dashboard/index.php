@@ -14,12 +14,8 @@
 
 <div class="row mt-4">
 
-    <div class="col-lg-4">
+    <div class="col-12">
         <?= $this->include('dashboard/status_system') ?>
-    </div>
-
-    <div class="col-lg-8">
-        <?= $this->include('dashboard/chart') ?>
     </div>
 
 </div>

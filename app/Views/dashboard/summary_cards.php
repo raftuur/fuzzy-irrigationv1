@@ -11,7 +11,7 @@
                     <div>
 
                         <div class="text-muted">
-                            Device Online
+                            ESP32 Terhubung
                         </div>
 
                         <h2 class="mt-2">
@@ -43,7 +43,7 @@
                     <div>
 
                         <div class="text-muted">
-                            Monitoring Hari Ini
+                            Total Monitoring
                         </div>
 
                         <h2 class="mt-2">
@@ -75,7 +75,7 @@
                     <div>
 
                         <div class="text-muted">
-                            Penyiraman Hari Ini
+                            Total Penyiraman
                         </div>
 
                         <h2 class="mt-2">
@@ -107,7 +107,7 @@
                     <div>
 
                         <div class="text-muted">
-                            Aktivitas Admin
+                            Aktivitas Sistem
                         </div>
 
                         <h2 class="mt-2">

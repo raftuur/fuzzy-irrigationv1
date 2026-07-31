@@ -61,11 +61,11 @@
         <div class="status-item">
 
             <span class="status-label">
-                ESP32
+                Status ESP32
             </span>
 
             <span id="esp32Status" class="status-value text-success">
-                Terhubung
+                Menunggu...
             </span>
 
         </div>
@@ -77,7 +77,7 @@
             </span>
 
             <span id="lastUpdate">
-                -
+                Menunggu data...
             </span>
 
         </div>

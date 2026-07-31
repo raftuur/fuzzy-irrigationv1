@@ -16,7 +16,7 @@
 
                 <small class="text-muted">
 
-                    Monitoring realtime pada setiap zona
+                    Nilai kelembapan tanah setiap zona secara realtime
 
                 </small>
 
