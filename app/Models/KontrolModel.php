@@ -1,19 +1,27 @@
 <?php
 
-namespace App\Models;
+namespace App\Controllers;
 
-use CodeIgniter\Model;
+use App\Models\KontrolModel;
 
-class KontrolModel extends Model
+class KontrolController extends BaseController
 {
-    protected $table = 'data_kontrol';
-    protected $primaryKey = 'id_kontrol';
+    protected $kontrol;
 
-    protected $allowedFields = [
-        'mode',
-        'pompa',
-        'zona'
-    ];
+    public function __construct()
+    {
+        $this->kontrol = new KontrolModel();
+    }
 
-    protected $returnType = 'array';
+    public function save()
+    {
+        log_message('error', json_encode($this->request->getPost()));
+
+        // kode lama...
+        $mode = $this->request->getPost('mode');
+        $pompa = $this->request->getPost('pompa');
+        $zona = $this->request->getPost('zona');
+
+        // ... lanjutkan kode yang sudah ada
+    }
 }
