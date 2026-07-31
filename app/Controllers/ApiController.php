@@ -223,6 +223,7 @@ class ApiController extends ResourceController
     {
         $riwayat = new \App\Models\RiwayatModel();
         $kontrol = new \App\Models\KontrolModel();
+        $device = new \App\Models\DeviceModel();
 
         $lastRiwayat = $riwayat
             ->orderBy('id_riwayat', 'DESC')
@@ -232,7 +233,8 @@ class ApiController extends ResourceController
             ->orderBy('id_kontrol', 'DESC')
             ->first();
 
-        // Ambil 10 data terakhir
+        $lastDevice = $device->find('ESP32-001');
+
         $history = $riwayat
             ->orderBy('id_riwayat', 'DESC')
             ->findAll(10);
@@ -240,6 +242,7 @@ class ApiController extends ResourceController
         return $this->response->setJSON([
             'riwayat' => $lastRiwayat,
             'kontrol' => $lastKontrol,
+            'device'  => $lastDevice,
             'history' => array_reverse($history)
         ]);
     }
