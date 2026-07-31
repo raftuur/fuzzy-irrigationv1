@@ -248,8 +248,9 @@ class ApiController extends ResourceController
         $lastDevice = $device->find('ESP32-001');
 
         $history = $riwayat
+            ->select('tanggal, suhu, kelembapan, tanah_a, tanah_b, tanah_c, tanah_d')
             ->orderBy('id_riwayat', 'DESC')
-            ->findAll(10);
+            ->findAll(20);
 
         return $this->response->setJSON([
             'riwayat' => $lastRiwayat,
