@@ -317,8 +317,12 @@ document.getElementById("btnPompaOn").onclick=function(){
 
     simpanKontrol({
 
-        mode:document.getElementById("mode").innerHTML,
+        mode: document.getElementById("btnManual").classList.contains("active")
+            ? "manual"
+            : "otomatis",
+
         pompa:"on",
+
         zona:document.getElementById("zonaSelect").value
 
     });
@@ -329,8 +333,12 @@ document.getElementById("btnPompaOff").onclick=function(){
 
     simpanKontrol({
 
-        mode:document.getElementById("mode").innerHTML,
+        mode: document.getElementById("btnManual").classList.contains("active")
+            ? "manual"
+            : "otomatis",
+
         pompa:"off",
+
         zona:document.getElementById("zonaSelect").value
 
     });
@@ -341,8 +349,14 @@ document.getElementById("zonaSelect").onchange=function(){
 
     simpanKontrol({
 
-        mode:document.getElementById("mode").innerHTML,
-        pompa:document.getElementById("pompa").innerHTML.toLowerCase(),
+        mode: document.getElementById("btnManual").classList.contains("active")
+            ? "manual"
+            : "otomatis",
+
+        pompa: document.getElementById("btnPompaOn").classList.contains("btn-active")
+            ? "on"
+            : "off",
+
         zona:this.value
 
     });
