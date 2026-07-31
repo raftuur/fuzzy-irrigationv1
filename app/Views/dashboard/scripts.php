@@ -153,96 +153,85 @@ fetch("<?= base_url('api/dashboard') ?>")
     const k = data.kontrol;
     const d = data.device;
 
+    // ============================
+    // 1. MODE DARI KONTROL
+    // ============================
     if(!k) return;
 
-    // tombol mode
-    const btnAuto=document.getElementById("btnAuto");
-    const btnManual=document.getElementById("btnManual");
+    const btnAuto = document.getElementById("btnAuto");
+    const btnManual = document.getElementById("btnManual");
 
-    if(k.mode==="otomatis"){
-
+    if(k.mode === "otomatis"){
         btnAuto.classList.add("active");
         btnManual.classList.remove("active");
-
-    }else{
-
+    } else {
         btnManual.classList.add("active");
         btnAuto.classList.remove("active");
-
     }
 
-    document.getElementById("zonaSelect").value=k.zona;
+    document.getElementById("zonaSelect").value = k.zona;
 
-    document.getElementById("mode").innerHTML = d.mode;
-    document.getElementById("pompa").innerHTML = d.pompa;
-    document.getElementById("zona").innerHTML = d.zona;
+    // ============================
+    // 2. STATUS DARI DEVICE
+    // ============================
+    if(d){
+        document.getElementById("mode").innerHTML = d.mode;
+        document.getElementById("pompa").innerHTML = d.pompa;
+        document.getElementById("zona").innerHTML = d.zona;
 
-    document.getElementById("zonaAktif").innerHTML = d.zona;
+        document.getElementById("zonaAktif").innerHTML = d.zona;
 
-    document.getElementById("pompaStatus").innerHTML =
-        d.pompa.toUpperCase();
+        document.getElementById("pompaStatus").innerHTML = d.pompa.toUpperCase();
+        document.getElementById("pompaStatus").className =
+            d.pompa === "on" ? "badge bg-success" : "badge bg-danger";
 
-    document.getElementById("pompaStatus").className =
-        d.pompa === "on"
-            ? "badge bg-success"
-            : "badge bg-danger";
+        // Update tombol pompa
+        const btnOn = document.getElementById("btnPompaOn");
+        const btnOff = document.getElementById("btnPompaOff");
 
-    // Update tombol pompa active/inactive
-    const btnOn = document.getElementById("btnPompaOn");
-    const btnOff = document.getElementById("btnPompaOff");
+        btnOn.classList.remove("btn-active", "btn-inactive");
+        btnOff.classList.remove("btn-active", "btn-inactive");
 
-    btnOn.classList.remove("btn-active","btn-inactive");
-    btnOff.classList.remove("btn-active","btn-inactive");
+        if(d.pompa === "on"){
+            btnOn.classList.add("btn-active");
+            btnOff.classList.add("btn-inactive");
+        } else {
+            btnOff.classList.add("btn-active");
+            btnOn.classList.add("btn-inactive");
+        }
 
-    if(d.pompa === "on"){
-
-        btnOn.classList.add("btn-active");
-        btnOff.classList.add("btn-inactive");
-
-    }else{
-
-        btnOff.classList.add("btn-active");
-        btnOn.classList.add("btn-inactive");
-
+        document.getElementById("lastUpdatePanel").innerHTML = d.last_update;
     }
 
+    // ============================
+    // 3. DATA RIWAYAT
+    // ============================
     if(!r) return;
 
     document.getElementById("lastUpdate").innerHTML = r.tanggal;
+    document.getElementById("durasiPompa").innerHTML = r.durasi_penyiraman + " Detik";
 
-    document.getElementById("durasiPompa").innerHTML =
-        r.durasi_penyiraman + " Detik";
+    counter("suhu", r.suhu);
+    counter("kelembapan", r.kelembapan);
 
-    document.getElementById("lastUpdatePanel").innerHTML =
-        d.last_update;
+    document.getElementById("hujan").innerHTML = r.status_hujan.toUpperCase();
 
-    counter("suhu",r.suhu);
-    counter("kelembapan",r.kelembapan);
-
-    document.getElementById("hujan").innerHTML=r.status_hujan.toUpperCase();
-
-    updateSoil("A",r.tanah_a);
-    updateSoil("B",r.tanah_b);
-    updateSoil("C",r.tanah_c);
-    updateSoil("D",r.tanah_d);
+    updateSoil("A", r.tanah_a);
+    updateSoil("B", r.tanah_b);
+    updateSoil("C", r.tanah_c);
+    updateSoil("D", r.tanah_d);
 
     updateSoilStatus("A", r.tanah_a);
     updateSoilStatus("B", r.tanah_b);
     updateSoilStatus("C", r.tanah_c);
     updateSoilStatus("D", r.tanah_d);
 
-    const avg=Math.round(
-        (
-            Number(r.tanah_a)+
-            Number(r.tanah_b)+
-            Number(r.tanah_c)+
-            Number(r.tanah_d)
-        )/4
+    const avg = Math.round(
+        (Number(r.tanah_a) + Number(r.tanah_b) + Number(r.tanah_c) + Number(r.tanah_d)) / 4
     );
+    document.getElementById("avgSoil").innerHTML = avg + "%";
 
-    document.getElementById("avgSoil").innerHTML=avg+"%";
-
-    // Progress suhu (maksimal 50°C)
+    // Progress suhu
     const suhuValue = parseFloat(r.suhu) || 0;
     document.getElementById("progressSuhu").style.width =
         Math.min((suhuValue / 50) * 100, 100) + "%";
@@ -259,10 +248,9 @@ fetch("<?= base_url('api/dashboard') ?>")
         badgeSuhu.innerText = "Tinggi";
     }
 
-    // Progress kelembapan (0-100%)
+    // Progress kelembapan
     const kelembapanValue = parseFloat(r.kelembapan) || 0;
-    document.getElementById("progressKelembapan").style.width =
-        kelembapanValue + "%";
+    document.getElementById("progressKelembapan").style.width = kelembapanValue + "%";
 
     const badgeKelembapan = document.getElementById("badgeKelembapan");
     if (kelembapanValue < 40) {

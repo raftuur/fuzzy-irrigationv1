@@ -211,6 +211,18 @@ class ApiController extends ResourceController
             $kontrol->insert($data);
         }
 
+        // ==========================================
+        // UPDATE DEVICE SAAT KONTROL BERUBAH
+        // ==========================================
+        $deviceModel = new DeviceModel();
+
+        $deviceModel->update('ESP32-001', [
+            'mode'        => $mode,
+            'pompa'       => $pompa,
+            'zona'        => $zona,
+            'last_update' => date('Y-m-d H:i:s')
+        ]);
+
         return $this->response->setJSON([
             'status' => 'success',
             'mode'   => $mode,
