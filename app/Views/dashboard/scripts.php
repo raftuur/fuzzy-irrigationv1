@@ -149,8 +149,9 @@ fetch("<?= base_url('api/dashboard') ?>")
 
 .then(data=>{
 
-    const r=data.riwayat;
-    const k=data.kontrol;
+    const r = data.riwayat;
+    const k = data.kontrol;
+    const d = data.device;
 
     if(!k) return;
 
@@ -172,17 +173,17 @@ fetch("<?= base_url('api/dashboard') ?>")
 
     document.getElementById("zonaSelect").value=k.zona;
 
-    document.getElementById("mode").innerHTML=k.mode;
-    document.getElementById("pompa").innerHTML=k.pompa;
-    document.getElementById("zona").innerHTML=k.zona;
+    document.getElementById("mode").innerHTML = d.mode;
+    document.getElementById("pompa").innerHTML = d.pompa;
+    document.getElementById("zona").innerHTML = d.zona;
 
-    document.getElementById("zonaAktif").innerHTML = k.zona;
+    document.getElementById("zonaAktif").innerHTML = d.zona;
 
     document.getElementById("pompaStatus").innerHTML =
-        k.pompa.toUpperCase();
+        d.pompa.toUpperCase();
 
     document.getElementById("pompaStatus").className =
-        k.pompa === "on"
+        d.pompa === "on"
             ? "badge bg-success"
             : "badge bg-danger";
 
@@ -193,7 +194,7 @@ fetch("<?= base_url('api/dashboard') ?>")
     btnOn.classList.remove("btn-active","btn-inactive");
     btnOff.classList.remove("btn-active","btn-inactive");
 
-    if(k.pompa === "on"){
+    if(d.pompa === "on"){
 
         btnOn.classList.add("btn-active");
         btnOff.classList.add("btn-inactive");
@@ -213,7 +214,7 @@ fetch("<?= base_url('api/dashboard') ?>")
         r.durasi_penyiraman + " Detik";
 
     document.getElementById("lastUpdatePanel").innerHTML =
-        r.tanggal;
+        d.last_update;
 
     counter("suhu",r.suhu);
     counter("kelembapan",r.kelembapan);
