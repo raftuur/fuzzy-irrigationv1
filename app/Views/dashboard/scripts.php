@@ -176,6 +176,16 @@ fetch("<?= base_url('api/dashboard') ?>")
     document.getElementById("pompa").innerHTML=k.pompa;
     document.getElementById("zona").innerHTML=k.zona;
 
+    document.getElementById("zonaAktif").innerHTML = k.zona;
+
+    document.getElementById("pompaStatus").innerHTML =
+        k.pompa.toUpperCase();
+
+    document.getElementById("pompaStatus").className =
+        k.pompa === "on"
+            ? "badge bg-success"
+            : "badge bg-danger";
+
     // Update tombol pompa active/inactive
     const btnOn = document.getElementById("btnPompaOn");
     const btnOff = document.getElementById("btnPompaOff");
@@ -198,6 +208,12 @@ fetch("<?= base_url('api/dashboard') ?>")
     if(!r) return;
 
     document.getElementById("lastUpdate").innerHTML = r.tanggal;
+
+    document.getElementById("durasiPompa").innerHTML =
+        r.durasi_penyiraman + " Detik";
+
+    document.getElementById("lastUpdatePanel").innerHTML =
+        r.tanggal;
 
     counter("suhu",r.suhu);
     counter("kelembapan",r.kelembapan);

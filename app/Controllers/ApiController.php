@@ -65,16 +65,6 @@ class ApiController extends ResourceController
 
         }
 
-        $last = $riwayat
-                    ->orderBy('id_riwayat','DESC')
-                    ->first();
-
-        $diffMinutes = 999;
-
-        if ($last) {
-            $diffMinutes = (time() - strtotime($last['tanggal'])) / 60;
-        }
-
         $data = [
             'tanggal'             => $tanggal,
             'suhu'                => $suhu,
@@ -85,32 +75,12 @@ class ApiController extends ResourceController
             'tanah_d'             => $d,
             'status_hujan'        => $status_hujan,
             'mode'                => $mode,
+            'pompa'               => $pompa,
             'zona'                => $zona,
             'durasi_penyiraman'   => $durasi,
         ];
 
-        if ($durasi > 0) {
-
-            $riwayat->insert($data);
-
-        } else {
-
-            if (
-                $last &&
-                $last['durasi_penyiraman'] == 0 &&
-                $diffMinutes < 5
-            ) {
-
-                $riwayat
-                    ->update($last['id_riwayat'], $data);
-
-            } else {
-
-                $riwayat->insert($data);
-
-            }
-
-        }
+        $riwayat->insert($data);
 
         // ==========================================
         // UPDATE STATUS DEVICE
