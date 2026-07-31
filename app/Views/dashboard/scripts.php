@@ -153,15 +153,47 @@ fetch("<?= base_url('api/dashboard') ?>")
     const k = data.kontrol;
     const d = data.device;
 
-    // ============================
-    // 1. MODE DARI KONTROL
-    // ============================
+    // ======================
+    // VALIDASI DEVICE
+    // ======================
+    if (!d) return;
+
+    // ======================
+    // 1. STATUS ONLINE/OFFLINE
+    // ======================
+    const systemStatus = document.getElementById("systemStatus");
+    const systemBadge = document.getElementById("systemBadge");
+    const esp32Status = document.getElementById("esp32Status");
+
+    if(d.status === "Online"){
+        systemStatus.innerHTML = "Online";
+        systemStatus.className = "badge bg-success";
+
+        systemBadge.innerHTML = "Online";
+        systemBadge.className = "badge bg-success px-3 py-2";
+
+        esp32Status.innerHTML = "Terhubung";
+        esp32Status.className = "status-value text-success";
+    } else {
+        systemStatus.innerHTML = "Offline";
+        systemStatus.className = "badge bg-danger";
+
+        systemBadge.innerHTML = "Offline";
+        systemBadge.className = "badge bg-danger px-3 py-2";
+
+        esp32Status.innerHTML = "Terputus";
+        esp32Status.className = "status-value text-danger";
+    }
+
+    // ======================
+    // 2. TOMBOL AUTO/MANUAL DARI DEVICE
+    // ======================
     if(!k) return;
 
     const btnAuto = document.getElementById("btnAuto");
     const btnManual = document.getElementById("btnManual");
 
-    if(k.mode === "otomatis"){
+    if(d.mode === "otomatis"){
         btnAuto.classList.add("active");
         btnManual.classList.remove("active");
     } else {
@@ -169,11 +201,14 @@ fetch("<?= base_url('api/dashboard') ?>")
         btnAuto.classList.remove("active");
     }
 
-    document.getElementById("zonaSelect").value = k.zona;
+    // ======================
+    // 3. ZONA SELECT DARI DEVICE
+    // ======================
+    document.getElementById("zonaSelect").value = d.zona;
 
-    // ============================
-    // 2. STATUS DARI DEVICE
-    // ============================
+    // ======================
+    // 4. STATUS DARI DEVICE
+    // ======================
     if(d){
         document.getElementById("mode").innerHTML = d.mode;
         document.getElementById("pompa").innerHTML = d.pompa;
@@ -200,15 +235,18 @@ fetch("<?= base_url('api/dashboard') ?>")
             btnOn.classList.add("btn-inactive");
         }
 
+        // ======================
+        // 5. LAST UPDATE DARI DEVICE
+        // ======================
+        document.getElementById("lastUpdate").innerHTML = d.last_update;
         document.getElementById("lastUpdatePanel").innerHTML = d.last_update;
     }
 
-    // ============================
-    // 3. DATA RIWAYAT
-    // ============================
+    // ======================
+    // 6. DATA RIWAYAT
+    // ======================
     if(!r) return;
 
-    document.getElementById("lastUpdate").innerHTML = r.tanggal;
     document.getElementById("durasiPompa").innerHTML = r.durasi_penyiraman + " Detik";
 
     counter("suhu", r.suhu);
