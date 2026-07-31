@@ -106,61 +106,63 @@ class ApiController extends ResourceController
 
     public function kontrol()
     {
-        $kontrol = new \App\Models\KontrolModel();
+        $kontrol = new KontrolModel();
 
-        log_message('error', 'KONTROL POST: ' . json_encode($this->request->getPost()));
+        // ==========================
+        // GET : Dibaca oleh ESP32
+        // ==========================
+        if ($this->request->getMethod() === 'get') {
 
-        $mode = $this->request->getVar('mode') ?? 'otomatis';
-        $pompa = $this->request->getVar('pompa') ?? 'off';
-        $zona = $this->request->getVar('zona') ?? 'A';
+            $last = $kontrol
+                ->orderBy('id_kontrol', 'DESC')
+                ->first();
+
+            if (!$last) {
+                return $this->response->setJSON([
+                    'status' => 'success',
+                    'mode'   => 'otomatis',
+                    'pompa'  => 'off',
+                    'zona'   => 'A'
+                ]);
+            }
+
+            return $this->response->setJSON([
+                'status' => 'success',
+                'mode'   => $last['mode'],
+                'pompa'  => $last['pompa'],
+                'zona'   => $last['zona']
+            ]);
+        }
+
+        // ==========================
+        // POST : Dari Dashboard
+        // ==========================
+
+        $mode  = $this->request->getPost('mode');
+        $pompa = $this->request->getPost('pompa');
+        $zona  = $this->request->getPost('zona');
 
         $last = $kontrol
             ->orderBy('id_kontrol', 'DESC')
             ->first();
 
         $data = [
-            'mode' => $mode,
+            'mode'  => $mode,
             'pompa' => $pompa,
-            'zona' => $zona
+            'zona'  => $zona
         ];
 
         if ($last) {
-            $result = $kontrol->update($last['id_kontrol'], $data);
+            $kontrol->update($last['id_kontrol'], $data);
         } else {
-            $result = $kontrol->insert($data);
-        }
-
-        if (!$result) {
-            return $this->response->setStatusCode(500)
-                ->setJSON([
-                    'status' => 'error',
-                    'message' => 'Gagal menyimpan data kontrol.'
-                ]);
-        }
-
-        // ============================================
-        // TAMBAHAN: SIMPAN KONFIGURASI KE TABEL SETTING
-        // ============================================
-        $settingModel = new SettingModel();
-
-        foreach ($this->request->getPost() as $key => $value) {
-
-            // Skip field yang sudah diproses di kontrol
-            if (in_array($key, ['mode', 'pompa', 'zona'])) {
-                continue;
-            }
-
-            // Simpan ke tabel setting
-            $settingModel->setValue($key, $value);
+            $kontrol->insert($data);
         }
 
         return $this->response->setJSON([
             'status' => 'success',
             'mode'   => $mode,
             'pompa'  => $pompa,
-            'zona'   => $zona,
-            'last'   => $last,
-            'result' => $result
+            'zona'   => $zona
         ]);
     }
 
