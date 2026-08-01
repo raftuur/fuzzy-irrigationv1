@@ -63,9 +63,7 @@ class ApiController extends ResourceController
         $tanggal = date('Y-m-d H:i:s');
 
         // ========== AMBIL DATA KONTROL TERBARU ==========
-        $current = $kontrol
-            ->orderBy('id_kontrol', 'DESC')
-            ->first();
+        $current = $kontrol->find(1);
 
         // ========== PERBAIKAN: Jika data kosong, buat default ==========
         if (!$current) {
@@ -74,30 +72,27 @@ class ApiController extends ResourceController
                 'pompa' => 'off',
                 'zona' => 'A'
             ]);
-            
-            $current = $kontrol
-                ->orderBy('id_kontrol', 'DESC')
-                ->first();
+            $current = $kontrol->find(1);
         }
 
         if ($current) {
-            $mode = $current['mode'];
+            $mode = $current['mode'] ?? 'otomatis';
             
             // ========== PERBAIKAN: Mode Manual vs Otomatis ==========
             if ($mode == 'manual') {
                 // Mode Manual: Gunakan data dari database
-                $pompa = $current['pompa'];
-                $zona = $current['zona'];
+                $pompa = $current['pompa'] ?? 'off';
+                $zona = $current['zona'] ?? 'A';
             } else {
                 // Mode Otomatis: ESP32 yang menentukan
                 $pompa = $this->request->getVar('p') ?? 'off';
                 $zona = $this->request->getVar('z') ?? '-';
                 
                 // ========== UPDATE ZONA DI DATABASE ==========
-                // Simpan zona hasil fuzzy ESP32 ke database
-                if ($zona != '-' && $zona != null) {
-                    $kontrol->update($current['id_kontrol'], [
-                        'zona' => $zona
+                if ($zona != '-' && $zona != null && $zona != '') {
+                    $kontrol->update(1, [
+                        'zona' => $zona,
+                        'pompa' => $pompa
                     ]);
                 }
             }
@@ -128,7 +123,7 @@ class ApiController extends ResourceController
         $db = \Config\Database::connect();
         $db->transStart();
 
-        // Simpan riwayat dengan try-catch
+        // Simpan riwayat
         try {
             $riwayat->insert($data);
         } catch (\Throwable $e) {
@@ -168,7 +163,6 @@ class ApiController extends ResourceController
         }
 
         $db->transComplete();
-        // ==========================================
 
         return $this->response->setBody(
             $mode . "," . $pompa . "," . $zona
@@ -184,29 +178,32 @@ class ApiController extends ResourceController
         // ==========================
         if ($this->request->getMethod() === 'get') {
 
-            $last = $kontrol
-                ->orderBy('id_kontrol', 'DESC')
-                ->first();
+            // ========== PERBAIKAN: Ambil data dengan pasti ==========
+            $last = $kontrol->find(1);
 
-            // ========== PERBAIKAN: Jika null, buat default ==========
+            // ========== PERBAIKAN: Jika tidak ada, buat default ==========
             if (!$last) {
                 $kontrol->insert([
                     'mode' => 'otomatis',
                     'pompa' => 'off',
                     'zona' => 'A'
                 ]);
-                
-                $last = $kontrol
-                    ->orderBy('id_kontrol', 'DESC')
-                    ->first();
+                $last = $kontrol->find(1);
             }
 
             // ========== PERBAIKAN: Pastikan data tidak null ==========
+            $mode = $last['mode'] ?? 'otomatis';
+            $pompa = $last['pompa'] ?? 'off';
+            $zona = $last['zona'] ?? 'A';
+
+            // ========== PERBAIKAN: Log untuk debug ==========
+            log_message('error', 'GET KONTROL: mode=' . $mode . ', pompa=' . $pompa . ', zona=' . $zona);
+
             return $this->response->setJSON([
                 'status' => 'success',
-                'mode'   => $last['mode'] ?? 'otomatis',
-                'pompa'  => $last['pompa'] ?? 'off',
-                'zona'   => $last['zona'] ?? 'A'
+                'mode'   => $mode,
+                'pompa'  => $pompa,
+                'zona'   => $zona
             ]);
         }
 
@@ -218,6 +215,9 @@ class ApiController extends ResourceController
         $pompa = $this->request->getPost('pompa');
         $zona  = $this->request->getPost('zona');
 
+        // ========== PERBAIKAN: Log POST ==========
+        log_message('error', 'POST KONTROL: mode=' . $mode . ', pompa=' . $pompa . ', zona=' . $zona);
+
         // ========== VALIDASI ==========
         if ($zona == '-' || $zona == null || $zona == '') {
             $zona = 'A';
@@ -225,13 +225,12 @@ class ApiController extends ResourceController
 
         // ========== LOGIKA MODE ==========
         if ($mode == 'otomatis') {
-            // ========== PERBAIKAN: Otomatis zona = '-' biar ESP32 yang tentukan ==========
             $zona = '-';
             $pompa = 'off';
         }
-        // Manual: pertahankan pilihan user
 
-        $last = $kontrol->orderBy('id_kontrol', 'DESC')->first();
+        // ========== PERBAIKAN: Update dengan pasti ==========
+        $last = $kontrol->find(1);
 
         $data = [
             'mode'  => $mode,
@@ -240,20 +239,31 @@ class ApiController extends ResourceController
         ];
 
         if ($last) {
-            $kontrol->update($last['id_kontrol'], $data);
+            $kontrol->update(1, $data);
         } else {
             $kontrol->insert($data);
         }
 
-        // ========== UPDATE DEVICE ==========
+        // ========== PERBAIKAN: Update device ==========
         $deviceModel = new DeviceModel();
         $device = $deviceModel->find('ESP32-001');
-        
+
         if ($device) {
             $deviceModel->update('ESP32-001', [
                 'mode'        => $mode,
                 'pompa'       => $pompa,
                 'zona'        => $zona,
+                'last_update' => date('Y-m-d H:i:s')
+            ]);
+        } else {
+            $deviceModel->insert([
+                'id_device' => 'ESP32-001',
+                'nama_device' => 'ESP32 Penyiram',
+                'lokasi' => 'Green House',
+                'status' => 'Online',
+                'mode' => $mode,
+                'pompa' => $pompa,
+                'zona' => $zona,
                 'last_update' => date('Y-m-d H:i:s')
             ]);
         }
@@ -276,9 +286,7 @@ class ApiController extends ResourceController
             ->orderBy('id_riwayat', 'DESC')
             ->first();
 
-        $lastKontrol = $kontrol
-            ->orderBy('id_kontrol', 'DESC')
-            ->first();
+        $lastKontrol = $kontrol->find(1);
 
         $lastDevice = $device->find('ESP32-001');
 
@@ -293,16 +301,15 @@ class ApiController extends ResourceController
                 'pompa' => 'off',
                 'zona' => 'A'
             ]);
-            
             $lastDevice = $device->find('ESP32-001');
         }
 
         // ======================
-        // HITUNG STATUS ONLINE BERDASARKAN LAST_UPDATE
+        // HITUNG STATUS ONLINE
         // ======================
         if ($lastDevice) {
             $selisih = time() - strtotime($lastDevice['last_update'] ?? date('Y-m-d H:i:s'));
-            $lastDevice['online'] = ($selisih <= 15);
+            $lastDevice['online'] = ($selisih <= 30);
             $lastDevice['selisih_detik'] = $selisih;
         }
 
