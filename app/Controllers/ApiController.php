@@ -201,6 +201,14 @@ class ApiController extends ResourceController
         $pompa = $this->request->getPost('pompa');
         $zona  = $this->request->getPost('zona');
 
+        // ========== LOG POST KONTROL ==========
+        log_message('error', 'POST KONTROL: ' . json_encode([
+            'mode'  => $mode,
+            'pompa' => $pompa,
+            'zona'  => $zona
+        ]));
+        // ======================================
+
         $last = $kontrol
             ->orderBy('id_kontrol', 'DESC')
             ->first();
@@ -216,6 +224,12 @@ class ApiController extends ResourceController
         } else {
             $kontrol->insert($data);
         }
+
+        // ========== LOG DB UPDATE ==========
+        log_message('error', 'DB UPDATE : ' . json_encode(
+            $kontrol->find($last['id_kontrol'] ?? 1)
+        ));
+        // ===================================
 
         // ==========================================
         // UPDATE DEVICE SAAT KONTROL BERUBAH
