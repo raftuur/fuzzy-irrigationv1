@@ -432,21 +432,11 @@ document.getElementById("btnPompaOff").onclick=function(){
 
 };
 
-document.getElementById("zonaSelect").onchange=function(){
+document.getElementById("zonaSelect").onchange = function () {
 
-    simpanKontrol({
-
-        mode: document.getElementById("btnManual").classList.contains("active")
-            ? "manual"
-            : "otomatis",
-
-        pompa: document.getElementById("btnPompaOn").classList.contains("btn-active")
-            ? "on"
-            : "off",
-
-        zona:this.value
-
-    });
+    // Hanya mengubah pilihan di dashboard.
+    // Tidak mengirim data ke server.
+    console.log("Zona dipilih :", this.value);
 
 };
 
