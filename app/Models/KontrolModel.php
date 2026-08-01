@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class KontrolModel extends Model
 {
-    protected $table = 'kontrol';
+    protected $table = 'data_kontrol';
 
     protected $primaryKey = 'id_kontrol';
 
