@@ -109,12 +109,18 @@ class ApiController extends ResourceController
         $db = \Config\Database::connect();
         $db->transStart();
 
-        // Simpan riwayat
-        if (!$riwayat->insert($data)) {
+        // Simpan riwayat dengan try-catch
+        try {
+
+            $riwayat->insert($data);
+
+        } catch (\Throwable $e) {
+
             $db->transRollback();
             return $this->response
                 ->setStatusCode(500)
-                ->setBody('FAILED_SAVE_DATA');
+                ->setBody($e->getMessage());
+
         }
 
         // ========== UPDATE STATUS DEVICE ==========

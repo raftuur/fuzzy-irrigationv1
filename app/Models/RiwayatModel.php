@@ -23,7 +23,10 @@ class RiwayatModel extends Model
         'status_hujan',
         'mode',
         'zona',
-        'durasi_penyiraman'
+        'durasi_penyiraman',
+        'pompa',
+        'device_id',
+        'id_device'
     ];
 
     // Optional: Tambahkan timestamps jika tabel memiliki created_at/updated_at
