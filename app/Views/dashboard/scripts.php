@@ -1,102 +1,72 @@
 <script>
+/* ============================================================
+   SMART IRRIGATION DASHBOARD - JavaScript
+   ============================================================ */
 
-let chart = null;
-
-/* ===========================
-   Counter Animation
-=========================== */
-function counter(id, value) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.innerHTML = value;
-}
-
-/* ===========================
-   Set Manual Control
-=========================== */
-function setManualControl(enabled){
+/* ============================================================
+   1. SET MANUAL CONTROL
+   ============================================================ */
+function setManualControl(enabled) {
     document.getElementById("zonaSelect").disabled = !enabled;
     document.getElementById("btnPompaOn").disabled = !enabled;
     document.getElementById("btnPompaOff").disabled = !enabled;
 }
 
-/* ===========================
-   Soil Monitor
-=========================== */
+/* ============================================================
+   2. UPDATE SOIL MONITOR
+   ============================================================ */
 function updateSoil(zona, nilai) {
     const bar = document.getElementById("pb" + zona);
     const text = document.getElementById("nilai" + zona);
     const status = document.getElementById("status" + zona);
+    const badge = document.getElementById("badge" + zona);
 
     if (!bar) return;
 
-    nilai = Number(nilai);
+    nilai = Number(nilai) || 0;
 
     bar.style.width = nilai + "%";
     text.innerHTML = nilai + "%";
 
+    // Update warna dan status
     if (nilai < 30) {
         bar.style.background = "#ef4444";
-        status.innerHTML = "Kering";
-    } else if (nilai < 50) {
-        bar.style.background = "#f59e0b";
-        status.innerHTML = "Perlu Penyiraman";
-    } else if (nilai < 80) {
-        bar.style.background = "#22c55e";
-        status.innerHTML = "Optimal";
-    } else {
-        bar.style.background = "#3b82f6";
-        status.innerHTML = "Terlalu Basah";
-    }
-}
-
-function updateSoilStatus(zona, nilai){
-    const progress = document.getElementById("pb"+zona);
-    const status = document.getElementById("status"+zona);
-    const badge = document.getElementById("badge"+zona);
-
-    progress.style.width = nilai + "%";
-
-    if(nilai < 30){
-        progress.className = "progress-bar bg-danger";
         status.innerHTML = "Tanah Sangat Kering";
         badge.className = "badge bg-danger";
         badge.innerHTML = "Kering";
-    }
-    else if(nilai < 60){
-        progress.className = "progress-bar bg-warning";
+    } else if (nilai < 60) {
+        bar.style.background = "#f59e0b";
         status.innerHTML = "Kelembapan Sedang";
         badge.className = "badge bg-warning text-dark";
         badge.innerHTML = "Sedang";
-    }
-    else{
-        progress.className = "progress-bar bg-success";
+    } else {
+        bar.style.background = "#22c55e";
         status.innerHTML = "Kondisi Optimal";
         badge.className = "badge bg-success";
         badge.innerHTML = "Basah";
     }
 }
 
-/* ===========================
-   Simpan Kontrol
-=========================== */
-function simpanKontrol(data){
-    fetch("<?= base_url('api/kontrol') ?>",{
-        method:"POST",
-        headers:{
-            "Content-Type":"application/x-www-form-urlencoded"
+/* ============================================================
+   3. SIMPAN KONTROL
+   ============================================================ */
+function simpanKontrol(data) {
+    fetch("<?= base_url('api/kontrol') ?>", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
         },
-        body:new URLSearchParams(data)
+        body: new URLSearchParams(data)
     })
-    .then(res=>res.json())
-    .then(res=>{
-        if(res.status==="success"){
+    .then(res => res.json())
+    .then(res => {
+        if (res.status === "success") {
             Swal.fire({
-                icon:"success",
-                title:"Berhasil",
-                text:"Pengaturan berhasil disimpan",
-                timer:1200,
-                showConfirmButton:false
+                icon: "success",
+                title: "Berhasil",
+                text: "Pengaturan berhasil disimpan",
+                timer: 1200,
+                showConfirmButton: false
             });
             loadDashboard();
         }
@@ -104,41 +74,41 @@ function simpanKontrol(data){
     .catch(err => {
         console.error('Error:', err);
         Swal.fire({
-            icon:"error",
-            title:"Gagal",
-            text:"Terjadi kesalahan: " + err.message
+            icon: "error",
+            title: "Gagal",
+            text: "Terjadi kesalahan: " + err.message
         });
     });
 }
 
-/* ===========================
-   Dashboard
-=========================== */
-function loadDashboard(){
+/* ============================================================
+   4. LOAD DASHBOARD
+   ============================================================ */
+function loadDashboard() {
     fetch("<?= base_url('api/dashboard') ?>")
-    .then(res=>res.json())
-    .then(data=>{
+    .then(res => res.json())
+    .then(data => {
         const r = data.riwayat;
         const k = data.kontrol;
         const d = data.device;
 
+        // ---------- UPDATE DEVICE INFO ----------
         if (d) {
-            if (document.getElementById("deviceName")) {
-                document.getElementById("deviceName").textContent = d.id_device ?? "ESP32-001";
-            }
-            if (document.getElementById("firmwareVersion")) {
-                document.getElementById("firmwareVersion").textContent = d.firmware ?? "v1.0";
-            }
+            const deviceName = document.getElementById("deviceName");
+            const firmwareVersion = document.getElementById("firmwareVersion");
+
+            if (deviceName) deviceName.textContent = d.id_device ?? "ESP32-001";
+            if (firmwareVersion) firmwareVersion.textContent = d.firmware ?? "v1.0";
         }
 
         if (!d) return;
 
-        // Status Online/Offline
+        // ---------- STATUS ONLINE/OFFLINE ----------
         const systemStatus = document.getElementById("systemStatus");
         const systemBadge = document.getElementById("systemBadge");
         const esp32Status = document.getElementById("esp32Status");
 
-        if(d.online === true){
+        if (d.online === true) {
             systemStatus.innerHTML = "Online";
             systemStatus.className = "badge bg-success";
             systemBadge.innerHTML = "Online";
@@ -154,13 +124,13 @@ function loadDashboard(){
             esp32Status.className = "status-value text-danger";
         }
 
-        if(!k) return;
+        // ---------- TOMBOL AUTO/MANUAL ----------
+        if (!k) return;
 
-        // Tombol AUTO/MANUAL
         const btnAuto = document.getElementById("btnAuto");
         const btnManual = document.getElementById("btnManual");
 
-        if(d.mode === "otomatis"){
+        if (d.mode === "otomatis") {
             btnAuto.classList.add("active");
             btnManual.classList.remove("active");
             setManualControl(false);
@@ -170,27 +140,35 @@ function loadDashboard(){
             setManualControl(true);
         }
 
-        // Zona Select
-        var zonaDisplay = (d.zona == '-' || d.zona == null) ? '-' : d.zona;
-        document.getElementById("zonaSelect").value = (d.zona != '-' && d.zona != null) ? d.zona : 'A';
+        // ---------- ZONA SELECT ----------
+        const zonaSelect = document.getElementById("zonaSelect");
+        if (d.zona && d.zona !== '-' && d.zona !== null) {
+            zonaSelect.value = d.zona;
+        } else {
+            zonaSelect.value = 'A';
+        }
 
-        if(d){
+        // ---------- STATUS SISTEM ----------
+        if (d) {
             document.getElementById("mode").innerHTML = d.mode === "manual" ? "Manual" : "Otomatis";
             document.getElementById("pompa").innerHTML = d.pompa === "on" ? "Menyala" : "Mati";
-            var zonaTampil = (d.zona == '-' || d.zona == null) ? '-' : "Zona " + d.zona;
+
+            const zonaTampil = (d.zona && d.zona !== '-' && d.zona !== null) ? "Zona " + d.zona : "-";
             document.getElementById("zona").innerHTML = zonaTampil;
             document.getElementById("zonaAktif").innerHTML = zonaTampil;
 
-            document.getElementById("pompaStatus").innerHTML = (d.pompa === "on") ? "ON" : "OFF";
-            document.getElementById("pompaStatus").className = d.pompa === "on" ? "badge bg-success" : "badge bg-danger";
+            // Status Pompa Badge
+            const pompaStatus = document.getElementById("pompaStatus");
+            pompaStatus.innerHTML = (d.pompa === "on") ? "ON" : "OFF";
+            pompaStatus.className = d.pompa === "on" ? "badge bg-success" : "badge bg-danger";
 
+            // Tombol Pompa
             const btnOn = document.getElementById("btnPompaOn");
             const btnOff = document.getElementById("btnPompaOff");
-
             btnOn.classList.remove("btn-active", "btn-inactive");
             btnOff.classList.remove("btn-active", "btn-inactive");
 
-            if(d.pompa === "on"){
+            if (d.pompa === "on") {
                 btnOn.classList.add("btn-active");
                 btnOff.classList.add("btn-inactive");
             } else {
@@ -198,23 +176,30 @@ function loadDashboard(){
                 btnOn.classList.add("btn-inactive");
             }
 
-            document.getElementById("lastUpdate").innerHTML = d.last_update;
-            document.getElementById("lastUpdatePanel").innerHTML = d.last_update;
-            document.getElementById("lastUpdateSuhu").innerHTML = "Update: " + d.last_update;
-            document.getElementById("lastUpdateKelembapan").innerHTML = "Update: " + d.last_update;
-            document.getElementById("lastUpdateCuaca").innerHTML = "Update: " + d.last_update;
+            // Last Update
+            const lastUpdate = d.last_update || "-";
+            document.getElementById("lastUpdate").innerHTML = lastUpdate;
+            document.getElementById("lastUpdatePanel").innerHTML = lastUpdate;
+            document.getElementById("lastUpdateSuhu").innerHTML = "Update: " + lastUpdate;
+            document.getElementById("lastUpdateKelembapan").innerHTML = "Update: " + lastUpdate;
+            document.getElementById("lastUpdateCuaca").innerHTML = "Update: " + lastUpdate;
         }
 
-        if(!r) return;
+        // ---------- DATA RIWAYAT ----------
+        if (!r) return;
 
-        document.getElementById("durasiPompa").innerHTML = r.durasi_penyiraman + " Detik";
-        counter("suhu", r.suhu);
-        counter("kelembapan", r.kelembapan);
+        document.getElementById("durasiPompa").innerHTML = (r.durasi_penyiraman || 0) + " Detik";
 
-        document.getElementById("hujan").innerHTML = r.status_hujan.toUpperCase();
+        // Suhu & Kelembapan
+        document.getElementById("suhu").innerHTML = r.suhu || 0;
+        document.getElementById("kelembapan").innerHTML = r.kelembapan || 0;
+
+        // Status Cuaca
+        const statusHujan = r.status_hujan || "cerah";
+        document.getElementById("hujan").innerHTML = statusHujan.toUpperCase();
 
         const badgeCuaca = document.getElementById("badgeCuaca");
-        if (r.status_hujan.toLowerCase() === "hujan") {
+        if (statusHujan.toLowerCase() === "hujan") {
             badgeCuaca.className = "badge bg-info";
             badgeCuaca.innerHTML = "Hujan";
         } else {
@@ -222,19 +207,21 @@ function loadDashboard(){
             badgeCuaca.innerHTML = "Cerah";
         }
 
-        updateSoil("A", r.tanah_a);
-        updateSoil("B", r.tanah_b);
-        updateSoil("C", r.tanah_c);
-        updateSoil("D", r.tanah_d);
+        // Update Soil (4 Zona)
+        const zonaList = ['A', 'B', 'C', 'D'];
+        zonaList.forEach(z => {
+            const nilai = r['tanah_' + z.toLowerCase()] || 0;
+            updateSoil(z, nilai);
+        });
 
-        updateSoilStatus("A", r.tanah_a);
-        updateSoilStatus("B", r.tanah_b);
-        updateSoilStatus("C", r.tanah_c);
-        updateSoilStatus("D", r.tanah_d);
-
-        const avg = Math.round((Number(r.tanah_a) + Number(r.tanah_b) + Number(r.tanah_c) + Number(r.tanah_d)) / 4);
+        // Rata-rata Soil
+        const avg = Math.round(
+            (Number(r.tanah_a || 0) + Number(r.tanah_b || 0) + 
+             Number(r.tanah_c || 0) + Number(r.tanah_d || 0)) / 4
+        );
         document.getElementById("avgSoil").innerHTML = avg + "%";
 
+        // Badge Suhu
         const badgeSuhu = document.getElementById("badgeSuhu");
         const suhuValue = parseFloat(r.suhu) || 0;
         if (suhuValue < 25) {
@@ -248,6 +235,7 @@ function loadDashboard(){
             badgeSuhu.innerText = "Tinggi";
         }
 
+        // Badge Kelembapan
         const badgeKelembapan = document.getElementById("badgeKelembapan");
         const kelembapanValue = parseFloat(r.kelembapan) || 0;
         if (kelembapanValue < 40) {
@@ -266,80 +254,82 @@ function loadDashboard(){
     });
 }
 
-/* ===========================
-   Event
-=========================== */
+/* ============================================================
+   5. EVENT HANDLER
+   ============================================================ */
 
 // Tombol AUTO
-document.getElementById("btnAuto").onclick = function(){
+document.getElementById("btnAuto").onclick = function() {
     this.classList.add("active");
     document.getElementById("btnManual").classList.remove("active");
     setManualControl(false);
 
     simpanKontrol({
-        mode : "otomatis",
-        pompa : "off",
-        zona : "A"
+        mode: "otomatis",
+        pompa: "off",
+        zona: "-"
     });
 };
 
 // Tombol MANUAL
-document.getElementById("btnManual").onclick = function(){
+document.getElementById("btnManual").onclick = function() {
     this.classList.add("active");
     document.getElementById("btnAuto").classList.remove("active");
     setManualControl(true);
 
-    var zona = document.getElementById("zonaSelect").value;
-    
+    const zona = document.getElementById("zonaSelect").value;
     simpanKontrol({
-        mode : "manual",
-        pompa : "off",
-        zona : zona
+        mode: "manual",
+        pompa: "off",
+        zona: zona
     });
 };
 
 // Tombol Pompa ON
-document.getElementById("btnPompaOn").onclick = function(){
-    var zona = document.getElementById("zonaSelect").value;
+document.getElementById("btnPompaOn").onclick = function() {
+    const zona = document.getElementById("zonaSelect").value;
+    
+    // Pastikan mode manual
     document.getElementById("btnManual").click();
     
     simpanKontrol({
-        mode : "manual",
-        pompa : "on",
-        zona : zona
+        mode: "manual",
+        pompa: "on",
+        zona: zona
     });
 };
 
 // Tombol Pompa OFF
-document.getElementById("btnPompaOff").onclick = function(){
-    var zona = document.getElementById("zonaSelect").value;
+document.getElementById("btnPompaOff").onclick = function() {
+    const zona = document.getElementById("zonaSelect").value;
     
     simpanKontrol({
-        mode : "manual",
-        pompa : "off",
-        zona : zona
+        mode: "manual",
+        pompa: "off",
+        zona: zona
     });
 };
 
-// Zona Select
-document.getElementById("zonaSelect").onchange = function(){
-    var zona = this.value;
-    var btnManual = document.getElementById("btnManual");
+// Zona Select - Update saat mode manual
+document.getElementById("zonaSelect").onchange = function() {
+    const zona = this.value;
+    const btnManual = document.getElementById("btnManual");
     
     if (btnManual.classList.contains("active")) {
-        var statusPompa = document.getElementById("pompaStatus");
-        var pompaStatus = statusPompa ? (statusPompa.innerHTML === "ON" ? "on" : "off") : "off";
+        const pompaStatus = document.getElementById("pompaStatus");
+        const statusPompa = pompaStatus ? (pompaStatus.innerHTML === "ON" ? "on" : "off") : "off";
         
         simpanKontrol({
-            mode : "manual",
-            pompa : pompaStatus,
-            zona : zona
+            mode: "manual",
+            pompa: statusPompa,
+            zona: zona
         });
-    } else {
-        console.log("Zona dipilih (otomatis):", zona);
     }
 };
 
+/* ============================================================
+   6. START
+   ============================================================ */
 // Load awal
 loadDashboard();
 

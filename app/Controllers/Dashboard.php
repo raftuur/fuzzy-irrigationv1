@@ -2,60 +2,65 @@
 
 namespace App\Controllers;
 
-use Config\Database;
+use App\Models\DeviceModel;
+use App\Models\RiwayatModel;
+use App\Models\LogAktivitasModel;
 
 class Dashboard extends BaseController
 {
     public function index()
     {
-        $db = Database::connect();
+        // ========== INISIALISASI MODEL ==========
+        $deviceModel = new DeviceModel();
+        $riwayatModel = new RiwayatModel();
+        $logModel = new LogAktivitasModel();
 
+        // ========== STATISTIK ==========
         // Device Online
-        $deviceOnline = $db->table('device')
+        $deviceOnline = $deviceModel
             ->where('status', 'Online')
             ->countAllResults();
 
         // Monitoring Hari Ini
-        $monitoringHariIni = $db->table('data_riwayat')
+        $monitoringHariIni = $riwayatModel
             ->where('DATE(tanggal)', date('Y-m-d'))
             ->countAllResults();
 
         // Penyiraman Hari Ini
-        $penyiramanHariIni = $db->table('data_riwayat')
+        $penyiramanHariIni = $riwayatModel
             ->where('DATE(tanggal)', date('Y-m-d'))
             ->where('durasi_penyiraman >', 0)
             ->countAllResults();
 
         // Aktivitas Admin Hari Ini
-        $aktivitasAdmin = $db->table('log_aktivitas')
+        $aktivitasAdmin = $logModel
             ->where('DATE(created_at)', date('Y-m-d'))
             ->countAllResults();
 
-        // 20 data monitoring terakhir
-        $chartData = $db->table('data_riwayat')
+        // ========== DATA GRAFIK ==========
+        $chartData = $riwayatModel
             ->select('tanggal, suhu, kelembapan')
             ->orderBy('id_riwayat', 'DESC')
             ->limit(20)
-            ->get()
-            ->getResultArray();
+            ->find();
 
-        // Urutkan kembali agar grafik dari data lama → terbaru
+        // Urutkan dari lama ke terbaru
         $chartData = array_reverse($chartData);
 
+        // ========== DATA TERBARU ==========
+        $device = $deviceModel->find('ESP32-001');
+        $riwayat = $riwayatModel->orderBy('id_riwayat', 'DESC')->first();
+
+        // ========== KIRIM KE VIEW ==========
         return view('dashboard/index', [
-
-            'title' => 'Dashboard',
-
+            'title' => 'Dashboard Irigasi',
             'deviceOnline' => $deviceOnline,
-
             'monitoringHariIni' => $monitoringHariIni,
-
             'penyiramanHariIni' => $penyiramanHariIni,
-
             'aktivitasAdmin' => $aktivitasAdmin,
-
-            'chartData' => $chartData
-
+            'chartData' => $chartData,
+            'device' => $device,
+            'riwayat' => $riwayat
         ]);
     }
 }

@@ -1,79 +1,76 @@
-<div class="sidebar d-flex flex-column">
+<!-- ============================================================ -->
+<!-- SIDEBAR -->
+<!-- ============================================================ -->
+<nav class="sidebar d-flex flex-column" id="sidebar">
 
-    <div class="logo text-center">
-
-        <h4 class="mb-1">Smart Irrigation</h4>
-
-        <small class="text-muted">
-            Monitoring System
-        </small>
-
+    <!-- ===================== LOGO ===================== -->
+    <div class="sidebar-brand text-center py-3">
+        <i class="bi bi-droplet-fill text-success fs-2"></i>
+        <h4 class="mb-0 mt-1 fw-bold">Smart Irigasi</h4>
+        <small class="text-muted">Monitoring System</small>
     </div>
 
-    <div class="mt-4">
+    <!-- ===================== MENU ===================== -->
+    <div class="sidebar-menu mt-2">
 
+        <!-- Dashboard -->
         <a href="<?= site_url('dashboard') ?>"
-            class="nav-link <?= uri_string() == 'dashboard' ? 'active' : '' ?>">
-
-            <i class="bi bi-speedometer2 me-2"></i>
-            Dashboard
-
+           class="menu-item <?= uri_string() == 'dashboard' || uri_string() == '' ? 'active' : '' ?>">
+            <i class="bi bi-speedometer2"></i>
+            <span class="menu-text">Dashboard</span>
         </a>
 
-        <a href="<?= site_url('riwayat') ?>"
-            class="nav-link <?= uri_string() == 'riwayat' ? 'active' : '' ?>">
-
-            <i class="bi bi-clock-history me-2"></i>
-            Riwayat
-
-        </a>
-
+        <!-- Kontrol -->
         <a href="<?= site_url('kontrol') ?>"
-            class="nav-link <?= uri_string() == 'kontrol' ? 'active' : '' ?>">
-
-            <i class="bi bi-sliders me-2"></i>
-            Kontrol
-
+           class="menu-item <?= uri_string() == 'kontrol' ? 'active' : '' ?>">
+            <i class="bi bi-sliders2"></i>
+            <span class="menu-text">Kontrol</span>
         </a>
 
-        <!-- ========================================== -->
-        <!-- TAMBAHKAN MENU DEVICE DI SINI -->
-        <!-- ========================================== -->
+        <!-- Riwayat -->
+        <a href="<?= site_url('riwayat') ?>"
+           class="menu-item <?= uri_string() == 'riwayat' ? 'active' : '' ?>">
+            <i class="bi bi-clock-history"></i>
+            <span class="menu-text">Riwayat</span>
+        </a>
+
+        <!-- Device -->
         <a href="<?= site_url('device') ?>"
-            class="nav-link <?= uri_string() == 'device' ? 'active' : '' ?>">
-
-            <i class="bi bi-cpu me-2"></i>
-            Device
-
+           class="menu-item <?= uri_string() == 'device' ? 'active' : '' ?>">
+            <i class="bi bi-cpu"></i>
+            <span class="menu-text">Device</span>
         </a>
 
+        <!-- Setting -->
+        <a href="<?= site_url('setting') ?>"
+           class="menu-item <?= uri_string() == 'setting' ? 'active' : '' ?>">
+            <i class="bi bi-gear-fill"></i>
+            <span class="menu-text">Setting</span>
+        </a>
+
+        <!-- Data Admin -->
         <a href="<?= site_url('admin') ?>"
-            class="nav-link <?= uri_string() == 'admin' ? 'active' : '' ?>">
-
-            <i class="bi bi-people me-2"></i>
-            Data Admin
-
+           class="menu-item <?= uri_string() == 'admin' ? 'active' : '' ?>">
+            <i class="bi bi-people"></i>
+            <span class="menu-text">Data Admin</span>
         </a>
 
+        <!-- Log Aktivitas -->
         <a href="<?= site_url('log') ?>"
-            class="nav-link <?= uri_string() == 'log' ? 'active' : '' ?>">
-
-            <i class="bi bi-clipboard-data me-2"></i>
-            Log Aktivitas
-
+           class="menu-item <?= uri_string() == 'log' ? 'active' : '' ?>">
+            <i class="bi bi-clipboard-data"></i>
+            <span class="menu-text">Log Aktivitas</span>
         </a>
 
     </div>
 
+    <!-- ===================== FOOTER MENU ===================== -->
     <div class="mt-auto p-3">
-
-        <a href="<?= site_url('logout') ?>"
-            class="btn btn-outline-danger w-100">
-
-            Logout
-
+        <hr style="border-color: rgba(255,255,255,0.1);">
+        <a href="<?= site_url('logout') ?>" class="menu-item text-danger">
+            <i class="bi bi-box-arrow-right"></i>
+            <span class="menu-text">Logout</span>
         </a>
-
     </div>
 
-</div>
+</nav>

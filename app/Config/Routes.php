@@ -3,47 +3,71 @@
 use CodeIgniter\Router\RouteCollection;
 
 /** @var RouteCollection $routes */
+
+// ======================
+// ROUTES TANPA LOGIN (PUBLIC)
+// ======================
 $routes->get('/', 'Auth::index');
 $routes->post('/login', 'Auth::login');
 $routes->get('/logout', 'Auth::logout');
 
+// ======================
+// ROUTES DENGAN FILTER AUTH
+// ======================
 $routes->group('', ['filter' => 'auth'], function ($routes) {
 
+    // Dashboard
     $routes->get('dashboard', 'Dashboard::index');
 
-    $routes->get('admin', 'AdminController::index');
+    // Admin
+    $routes->group('admin', function ($routes) {
+        $routes->get('/', 'AdminController::index');
+        $routes->get('create', 'AdminController::create');
+        $routes->post('store', 'AdminController::store');
+        $routes->get('edit/(:num)', 'AdminController::edit/$1');
+        $routes->post('update/(:num)', 'AdminController::update/$1');
+        $routes->get('delete/(:num)', 'AdminController::delete/$1');
+        $routes->get('detail/(:num)', 'AdminController::detail/$1');
+    });
 
-    $routes->get('admin/create', 'AdminController::create');
-    $routes->post('admin/store', 'AdminController::store');
-
-    $routes->get('admin/edit/(:num)', 'AdminController::edit/$1');
-    $routes->post('admin/update/(:num)', 'AdminController::update/$1');
-
-    $routes->get('admin/delete/(:num)', 'AdminController::delete/$1');
-
-    $routes->get('admin/detail/(:num)', 'AdminController::detail/$1');
-
+    // Riwayat
     $routes->get('riwayat', 'RiwayatController::index');
 
-    $routes->get('kontrol', 'KontrolController::index');
+    // Kontrol
+    $routes->group('kontrol', function ($routes) {
+        $routes->get('/', 'KontrolController::index');
+        $routes->post('save', 'KontrolController::save');
+    });
 
-    $routes->get('setting', 'SettingController::index');
+    // Setting
+    $routes->group('setting', function ($routes) {
+        $routes->get('/', 'SettingController::index');
+        $routes->post('save', 'SettingController::save');
+    });
 
-    $routes->post('setting/save', 'SettingController::save');
-    $routes->post('kontrol/save','KontrolController::save');
-    $routes->get('device', 'DeviceController::index');
-    $routes->get('device/detail/(:segment)', 'DeviceController::detail/$1');
+    // Device
+    $routes->group('device', function ($routes) {
+        $routes->get('/', 'DeviceController::index');
+        $routes->get('detail/(:segment)', 'DeviceController::detail/$1');
+    });
 
+    // Log
     $routes->get('log', 'LogAktivitasController::index');
 
 });
 
+// ======================
+// ROUTES API (TANPA AUTH)
+// ======================
 $routes->group('api', function ($routes) {
 
-    $routes->match(['get','post'], 'sensor', 'ApiController::sensor');
+    // ESP32 baca kontrol (GET) / Dashboard kirim kontrol (POST)
+    $routes->match(['get', 'post'], 'kontrol', 'ApiController::kontrol');
 
-    $routes->match(['get','post'], 'kontrol', 'ApiController::kontrol');
+    // ESP32 kirim sensor (POST)
+    $routes->post('sensor', 'ApiController::sensor');
 
+    // Dashboard ambil data (GET)
     $routes->get('dashboard', 'ApiController::dashboard');
 
 });
