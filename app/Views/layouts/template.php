@@ -154,9 +154,9 @@
         .sidebar-toggle {
             display: none;
             position: fixed;
-            top: 10px;
-            left: 10px;
-            z-index: 1060;
+            top: 15px;
+            left: 15px;
+            z-index: 2000;
             background: #1a2332;
             border: none;
             color: white;
@@ -219,21 +219,118 @@
             }
         }
 
+        /* ============================================================
+           RESPONSIVE - MOBILE (DIPERBAIKI)
+           ============================================================ */
         @media (max-width: 576px) {
             .sidebar {
-                width: 280px;
-                left: -300px;
+                width: 260px;
+                left: -260px;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.25);
             }
 
             .sidebar-brand {
-                font-size: 1rem;
-                padding: 15px 15px 10px 15px;
+                padding: 18px;
+            }
+
+            .sidebar-brand h4 {
+                font-size: 1.1rem;
             }
 
             .sidebar-menu .menu-item {
-                padding: 10px 16px;
-                font-size: 0.9rem;
+                padding: 14px 18px;
+                font-size: 15px;
             }
+
+            .sidebar-toggle {
+                top: 15px;
+                left: 15px;
+                padding: 8px 12px;
+                font-size: 1.1rem;
+            }
+
+            .main-content .container-fluid {
+                padding: 10px !important;
+            }
+        }
+
+        /* ============================================================
+           ADDITIONAL FIXES
+           ============================================================ */
+        /* Fix untuk card di mobile */
+        @media (max-width: 576px) {
+            .card-body {
+                padding: 12px !important;
+            }
+            
+            .card-title {
+                font-size: 0.95rem !important;
+            }
+            
+            .display-6 {
+                font-size: 1.3rem !important;
+            }
+            
+            .table-responsive {
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Loading spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Status chip */
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-chip.online {
+            background: rgba(39, 174, 96, 0.15);
+            color: #27ae60;
+        }
+
+        .status-chip.offline {
+            background: rgba(220, 53, 69, 0.15);
+            color: #dc3545;
+        }
+
+        .status-chip .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-chip.online .dot {
+            background: #27ae60;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .status-chip.offline .dot {
+            background: #dc3545;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
         }
     </style>
 </head>
@@ -331,7 +428,7 @@
         <?= $this->include('layouts/navbar') ?>
 
         <!-- Content -->
-        <div class="container-fluid p-4">
+        <div class="container-fluid p-2 p-md-4">
             <?= $this->renderSection('content') ?>
         </div>
 
@@ -363,6 +460,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function toggleSidebar() {
         sidebar.classList.toggle('show');
         if (overlay) overlay.classList.toggle('show');
+        document.body.style.overflow = sidebar.classList.contains('show') ? 'hidden' : '';
     }
 
     // Event: Toggle button
@@ -380,6 +478,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (window.innerWidth > 992) {
             sidebar.classList.remove('show');
             if (overlay) overlay.classList.remove('show');
+            document.body.style.overflow = '';
         }
     });
 
@@ -390,9 +489,20 @@ document.addEventListener('DOMContentLoaded', function() {
             if (window.innerWidth <= 992) {
                 sidebar.classList.remove('show');
                 if (overlay) overlay.classList.remove('show');
+                document.body.style.overflow = '';
             }
         });
     });
+
+    // Prevent body scroll when sidebar is open on mobile
+    document.addEventListener('touchmove', function(e) {
+        if (window.innerWidth <= 992 && sidebar.classList.contains('show')) {
+            // Allow scrolling inside sidebar only
+            if (!sidebar.contains(e.target)) {
+                e.preventDefault();
+            }
+        }
+    }, { passive: false });
 });
 </script>
 

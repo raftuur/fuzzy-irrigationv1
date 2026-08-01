@@ -1,12 +1,13 @@
+<script>
 /* ============================================================
-   SMART IRRIGATION DASHBOARD - JavaScript (DIPERBAIKI)
+   SMART IRRIGATION DASHBOARD - JavaScript
    ============================================================ */
 
 // ============================================================
 // 1. KONFIGURASI GLOBAL
 // ============================================================
 const CONFIG = {
-    autoRefreshInterval: 5000, // 5 detik
+    autoRefreshInterval: 5000,
     apiBaseUrl: '<?= base_url("api") ?>',
     maxRetries: 3,
     retryDelay: 1000
@@ -43,7 +44,6 @@ function updateSoil(zona, nilai) {
     bar.setAttribute("aria-valuenow", nilaiAman);
     text.innerHTML = nilaiAman + "%";
 
-    // Update warna dan status berdasarkan tingkat kelembapan
     let statusText, badgeText, badgeClass, barColor;
     
     if (nilaiAman < 30) {
@@ -79,17 +79,17 @@ function updateSoil(zona, nilai) {
 }
 
 // ============================================================
-// 4. SIMPAN KONTROL (DENGAN VALIDASI)
+// 4. SIMPAN KONTROL
 // ============================================================
 function simpanKontrol(data) {
-    // Validasi data
     if (!data.mode || !data.pompa) {
         console.error("Data tidak lengkap:", data);
         return Promise.reject(new Error("Data tidak lengkap"));
     }
 
-    // Tambahkan api_key untuk keamanan
     data.api_key = "<?= $apiKey ?? 'FuzzyIrigasi2026' ?>";
+
+    console.log('📤 Sending control:', data);
 
     return fetch(CONFIG.apiBaseUrl + "/kontrol", {
         method: "POST",
@@ -106,6 +106,7 @@ function simpanKontrol(data) {
         return res.json();
     })
     .then(res => {
+        console.log('✅ Control response:', res);
         if (res.status === "success") {
             showToast("success", "Berhasil", "Pengaturan berhasil disimpan");
             loadDashboard();
@@ -115,7 +116,7 @@ function simpanKontrol(data) {
         }
     })
     .catch(err => {
-        console.error('Error:', err);
+        console.error('❌ Error saving control:', err);
         showToast("error", "Gagal", "Terjadi kesalahan: " + err.message);
         throw err;
     });
@@ -125,7 +126,6 @@ function simpanKontrol(data) {
 // 5. TOAST NOTIFICATION
 // ============================================================
 function showToast(type, title, message) {
-    // Gunakan SweetAlert2 jika tersedia
     if (typeof Swal !== 'undefined') {
         Swal.fire({
             icon: type,
@@ -137,15 +137,16 @@ function showToast(type, title, message) {
             position: 'top-end'
         });
     } else {
-        // Fallback: console log
         console.log(`[${type.toUpperCase()}] ${title}: ${message}`);
     }
 }
 
 // ============================================================
-// 6. LOAD DASHBOARD (DIPERBAIKI)
+// 6. LOAD DASHBOARD
 // ============================================================
 function loadDashboard(retryCount = 0) {
+    console.log('🔄 Loading dashboard...');
+    
     fetch(CONFIG.apiBaseUrl + "/dashboard")
     .then(res => {
         if (!res.ok) {
@@ -154,30 +155,20 @@ function loadDashboard(retryCount = 0) {
         return res.json();
     })
     .then(data => {
-        // Reset retry count on success
+        console.log('✅ Dashboard data:', data);
         retryCount = 0;
         
         const r = data.riwayat || {};
-        const k = data.kontrol || {};
         const d = data.device || {};
 
-        // ---------- UPDATE DEVICE INFO ----------
         updateDeviceInfo(d);
-
-        // ---------- UPDATE MODE & CONTROL ----------
         updateModeAndControl(d);
-
-        // ---------- UPDATE RIWAYAT ----------
         updateRiwayat(r, d);
-
-        // ---------- UPDATE STATUS ----------
         updateStatusSystem(d);
-
     })
     .catch(err => {
-        console.error('Error loading dashboard:', err);
+        console.error('❌ Error loading dashboard:', err);
         
-        // Retry logic
         if (retryCount < CONFIG.maxRetries) {
             setTimeout(() => {
                 loadDashboard(retryCount + 1);
@@ -209,7 +200,6 @@ function updateDeviceInfo(d) {
 
     const isOnline = d.online === true;
     
-    // Update status
     const statusElements = [
         { el: systemStatus, online: "Online", offline: "Offline" },
         { el: systemBadge, online: "Online", offline: "Offline" },
@@ -222,7 +212,6 @@ function updateDeviceInfo(d) {
         el.className = isOnline ? "badge bg-success" : "badge bg-danger";
     });
 
-    // Update status chip
     if (statusChip) {
         statusChip.className = isOnline ? "status-chip online" : "status-chip offline";
         const statusText = statusChip.querySelector("#statusText");
@@ -246,7 +235,6 @@ function updateModeAndControl(d) {
     const pompa = d.pompa || "off";
     const zona = d.zona || "A";
 
-    // Update mode buttons
     if (btnAuto && btnManual) {
         if (mode === "otomatis") {
             btnAuto.classList.add("active");
@@ -259,18 +247,15 @@ function updateModeAndControl(d) {
         }
     }
 
-    // Update zona select
     if (zonaSelect) {
-        zonaSelect.value = (zona && zona !== '-' && zona !== null) ? zona : 'A';
+        zonaSelect.value = (zona && zona !== '-' && zona !== null && zona !== 'none') ? zona : 'A';
     }
 
-    // Update pompa status
     if (pompaStatus) {
         pompaStatus.innerHTML = pompa === "on" ? "ON" : "OFF";
         pompaStatus.className = pompa === "on" ? "badge bg-success" : "badge bg-danger";
     }
 
-    // Update pompa buttons
     if (btnOn && btnOff) {
         btnOn.classList.remove("btn-active", "btn-inactive");
         btnOff.classList.remove("btn-active", "btn-inactive");
@@ -289,14 +274,10 @@ function updateModeAndControl(d) {
 // 9. UPDATE RIWAYAT
 // ============================================================
 function updateRiwayat(r, d) {
-    // Update waktu
     const lastUpdate = d.last_update || r.last_update || "-";
     const updateElements = [
-        "lastUpdate", 
-        "lastUpdatePanel", 
-        "lastUpdateSuhu", 
-        "lastUpdateKelembapan", 
-        "lastUpdateCuaca"
+        "lastUpdate", "lastUpdatePanel", 
+        "lastUpdateSuhu", "lastUpdateKelembapan", "lastUpdateCuaca"
     ];
     
     updateElements.forEach(id => {
@@ -309,13 +290,11 @@ function updateRiwayat(r, d) {
         }
     });
 
-    // Update durasi
     const durasiEl = document.getElementById("durasiPompa");
     if (durasiEl) {
         durasiEl.innerHTML = (r.durasi_penyiraman || 0) + " Detik";
     }
 
-    // Update suhu dan kelembapan
     const suhu = parseFloat(r.suhu) || 0;
     const kelembapan = parseFloat(r.kelembapan) || 0;
     
@@ -325,7 +304,6 @@ function updateRiwayat(r, d) {
     if (suhuEl) suhuEl.innerHTML = suhu;
     if (kelembapanEl) kelembapanEl.innerHTML = kelembapan;
 
-    // Update status cuaca
     const statusHujan = r.status_hujan || "cerah";
     const hujanEl = document.getElementById("hujan");
     const badgeCuaca = document.getElementById("badgeCuaca");
@@ -342,7 +320,6 @@ function updateRiwayat(r, d) {
         }
     }
 
-    // Update soil (4 zona)
     const zonaList = ['A', 'B', 'C', 'D'];
     let totalSoil = 0;
     
@@ -352,15 +329,11 @@ function updateRiwayat(r, d) {
         updateSoil(z, nilai);
     });
 
-    // Update rata-rata
     const avg = Math.round(totalSoil / 4);
     const avgEl = document.getElementById("avgSoil");
     if (avgEl) avgEl.innerHTML = avg + "%";
 
-    // Update badge suhu
     updateTemperatureBadge(suhu);
-    
-    // Update badge kelembapan
     updateHumidityBadge(kelembapan);
 }
 
@@ -425,7 +398,7 @@ function updateStatusSystem(d) {
         pompaEl.className = "status-value fw-bold";
     }
     
-    const zonaTampil = (zona && zona !== '-' && zona !== null) ? "Zona " + zona : "-";
+    const zonaTampil = (zona && zona !== '-' && zona !== null && zona !== 'none') ? "Zona " + zona : "-";
     if (zonaEl) {
         zonaEl.innerHTML = "📍 " + zonaTampil;
         zonaEl.className = "status-value fw-bold";
@@ -438,96 +411,95 @@ function updateStatusSystem(d) {
 }
 
 // ============================================================
-// 13. EVENT HANDLER (DIPERBAIKI)
+// 13. EVENT HANDLER
 // ============================================================
 
-// Tombol AUTO
-const btnAuto = document.getElementById("btnAuto");
-if (btnAuto) {
-    btnAuto.onclick = function() {
-        simpanKontrol({
-            mode: "otomatis",
-            pompa: "off",
-            zona: "-"
-        });
-    };
-}
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOM loaded, initializing dashboard...');
+    
+    // Tombol AUTO
+    const btnAuto = document.getElementById("btnAuto");
+    if (btnAuto) {
+        btnAuto.onclick = function() {
+            console.log('🔄 Button AUTO clicked');
+            simpanKontrol({
+                mode: "otomatis",
+                pompa: "off",
+                zona: "-"
+            });
+        };
+    }
 
-// Tombol MANUAL
-const btnManual = document.getElementById("btnManual");
-if (btnManual) {
-    btnManual.onclick = function() {
-        const zona = document.getElementById("zonaSelect")?.value || "A";
-        simpanKontrol({
-            mode: "manual",
-            pompa: "off",
-            zona: zona
-        });
-    };
-}
-
-// Tombol Pompa ON
-const btnPompaOn = document.getElementById("btnPompaOn");
-if (btnPompaOn) {
-    btnPompaOn.onclick = function() {
-        const zona = document.getElementById("zonaSelect")?.value || "A";
-        simpanKontrol({
-            mode: "manual",
-            pompa: "on",
-            zona: zona
-        });
-    };
-}
-
-// Tombol Pompa OFF
-const btnPompaOff = document.getElementById("btnPompaOff");
-if (btnPompaOff) {
-    btnPompaOff.onclick = function() {
-        const zona = document.getElementById("zonaSelect")?.value || "A";
-        simpanKontrol({
-            mode: "manual",
-            pompa: "off",
-            zona: zona
-        });
-    };
-}
-
-// Zona Select - Update saat mode manual
-const zonaSelect = document.getElementById("zonaSelect");
-if (zonaSelect) {
-    zonaSelect.onchange = function() {
-        const zona = this.value;
-        const btnManual = document.getElementById("btnManual");
-        
-        // Cek apakah mode manual aktif
-        if (btnManual && btnManual.classList.contains("active")) {
-            const pompaStatus = document.getElementById("pompaStatus");
-            const statusPompa = pompaStatus ? (pompaStatus.innerHTML === "ON" ? "on" : "off") : "off";
-            
+    // Tombol MANUAL
+    const btnManual = document.getElementById("btnManual");
+    if (btnManual) {
+        btnManual.onclick = function() {
+            console.log('🔄 Button MANUAL clicked');
+            const zona = document.getElementById("zonaSelect")?.value || "A";
             simpanKontrol({
                 mode: "manual",
-                pompa: statusPompa,
+                pompa: "off",
                 zona: zona
             });
-        }
-    };
-}
+        };
+    }
 
-// ============================================================
-// 14. START
-// ============================================================
-// Load awal
-document.addEventListener('DOMContentLoaded', function() {
+    // Tombol Pompa ON
+    const btnPompaOn = document.getElementById("btnPompaOn");
+    if (btnPompaOn) {
+        btnPompaOn.onclick = function() {
+            console.log('🔄 Button POMPA ON clicked');
+            const zona = document.getElementById("zonaSelect")?.value || "A";
+            simpanKontrol({
+                mode: "manual",
+                pompa: "on",
+                zona: zona
+            });
+        };
+    }
+
+    // Tombol Pompa OFF
+    const btnPompaOff = document.getElementById("btnPompaOff");
+    if (btnPompaOff) {
+        btnPompaOff.onclick = function() {
+            console.log('🔄 Button POMPA OFF clicked');
+            const zona = document.getElementById("zonaSelect")?.value || "A";
+            simpanKontrol({
+                mode: "manual",
+                pompa: "off",
+                zona: zona
+            });
+        };
+    }
+
+    // Zona Select
+    const zonaSelect = document.getElementById("zonaSelect");
+    if (zonaSelect) {
+        zonaSelect.onchange = function() {
+            console.log('🔄 Zona changed to:', this.value);
+            const btnManual = document.getElementById("btnManual");
+            
+            if (btnManual && btnManual.classList.contains("active")) {
+                const pompaStatus = document.getElementById("pompaStatus");
+                const statusPompa = pompaStatus ? (pompaStatus.innerHTML === "ON" ? "on" : "off") : "off";
+                
+                simpanKontrol({
+                    mode: "manual",
+                    pompa: statusPompa,
+                    zona: this.value
+                });
+            }
+        };
+    }
+
+    // Load awal
     loadDashboard();
 });
 
-// Auto refresh dengan interval yang ditentukan
+// Auto refresh
 setInterval(loadDashboard, CONFIG.autoRefreshInterval);
 
-// ============================================================
-// 15. SERVICE WORKER UNTUK OFFLINE MODE (Opsional)
-// ============================================================
-// Cek koneksi internet
+// Cek koneksi
 window.addEventListener('online', function() {
     showToast("info", "Online", "Koneksi internet pulih");
     loadDashboard();
@@ -539,3 +511,4 @@ window.addEventListener('offline', function() {
 
 console.log("✅ Smart Irrigation Dashboard loaded successfully!");
 console.log(`🔄 Auto refresh: ${CONFIG.autoRefreshInterval / 1000} detik`);
+</script>
