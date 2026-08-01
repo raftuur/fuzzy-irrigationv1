@@ -7,10 +7,21 @@ use App\Models\KontrolModel;
 use App\Models\SettingModel;
 use App\Models\DeviceModel;
 use CodeIgniter\RESTful\ResourceController;
+use CodeIgniter\API\ResponseTrait;
 
 class ApiController extends ResourceController
 {
+    use ResponseTrait;
+    
     protected $format = 'json';
+    
+    // ============================================================
+    // KONSTANTA
+    // ============================================================
+    private const API_KEY = 'FuzzyIrigasi2026';
+    private const DEVICE_ID = 'ESP32-001';
+    private const TIMEOUT_ONLINE = 30; // detik
+    private const MAX_HISTORY = 20;
 
     // ============================================================
     // 1. SENSOR - ESP32 kirim data sensor ke web
@@ -21,10 +32,8 @@ class ApiController extends ResourceController
     {
         // ---------- VALIDASI API KEY ----------
         $apiKey = $this->request->getVar('api_key');
-        if ($apiKey !== 'FuzzyIrigasi2026') {
-            return $this->response
-                ->setStatusCode(401)
-                ->setBody('INVALID_API_KEY');
+        if ($apiKey !== self::API_KEY) {
+            return $this->failUnauthorized('INVALID_API_KEY');
         }
 
         // ---------- AMBIL DATA ----------
@@ -38,7 +47,7 @@ class ApiController extends ResourceController
         $durasi = $this->request->getVar('durasi') ?? 0;
         $pompaStatus = $this->request->getVar('p') ?? 'off';
         $zonaDariEsp = $this->request->getVar('z') ?? '-';
-        $idDevice = $this->request->getPost('id_device') ?? 'ESP32-001';
+        $idDevice = $this->request->getPost('id_device') ?? self::DEVICE_ID;
         $firmware = $this->request->getPost('firmware') ?? 'v1.0';
 
         // ---------- VALIDASI DATA ----------
@@ -46,10 +55,16 @@ class ApiController extends ResourceController
             $a === null || $b === null || $c === null || $d === null ||
             $suhu === null || $hum === null || $rain === null
         ) {
-            return $this->response
-                ->setStatusCode(400)
-                ->setBody('NO_DATA_RECEIVED');
+            return $this->failValidationErrors('NO_DATA_RECEIVED');
         }
+
+        // ---------- VALIDASI NILAI ----------
+        $a = $this->validateRange($a, 0, 100);
+        $b = $this->validateRange($b, 0, 100);
+        $c = $this->validateRange($c, 0, 100);
+        $d = $this->validateRange($d, 0, 100);
+        $suhu = $this->validateRange($suhu, -10, 50);
+        $hum = $this->validateRange($hum, 0, 100);
 
         // ---------- TENTUKAN STATUS HUJAN ----------
         $statusHujan = ($rain < 1000) ? 'hujan' : 'cerah';
@@ -95,7 +110,7 @@ class ApiController extends ResourceController
 
         // ---------- SIMPAN RIWAYAT ----------
         $riwayatModel = new RiwayatModel();
-        $riwayatModel->insert([
+        $riwayatData = [
             'tanggal' => date('Y-m-d H:i:s'),
             'suhu' => $suhu,
             'kelembapan' => $hum,
@@ -109,7 +124,12 @@ class ApiController extends ResourceController
             'zona' => $zona,
             'durasi_penyiraman' => $durasi,
             'id_device' => $idDevice
-        ]);
+        ];
+        
+        $riwayatModel->insert($riwayatData);
+
+        // ✅ PERBAIKAN: Hapus data lama (lebih dari 7 hari)
+        $this->cleanupOldData($riwayatModel);
 
         // ---------- UPDATE DEVICE ----------
         $deviceModel = new DeviceModel();
@@ -176,14 +196,11 @@ class ApiController extends ResourceController
             log_message('debug', 'GET KONTROL: mode=' . $mode . ', pompa=' . $pompa . ', zona=' . $zona);
 
             // ✅ PERBAIKAN: Kirim response dengan nilai pasti
-            return $this->response
-                ->setHeader('Content-Type', 'application/json')
-                ->setJSON([
-                    'status' => 'success',
-                    'mode' => $mode,
-                    'pompa' => $pompa,
-                    'zona' => $zona
-                ]);
+            return $this->respond([
+                'mode' => $mode,
+                'pompa' => $pompa,
+                'zona' => $zona
+            ]);
         }
 
         // ==========================
@@ -193,11 +210,17 @@ class ApiController extends ResourceController
         $pompa = $this->request->getPost('pompa');
         $zona = $this->request->getPost('zona');
 
+        // ✅ PERBAIKAN: Validasi API Key untuk POST
+        $apiKey = $this->request->getPost('api_key');
+        if ($apiKey && $apiKey !== self::API_KEY) {
+            return $this->failUnauthorized('Invalid API Key');
+        }
+
         // ✅ PERBAIKAN: Log POST
         log_message('debug', 'POST KONTROL: mode=' . $mode . ', pompa=' . $pompa . ', zona=' . $zona);
 
         // ✅ PERBAIKAN: Validasi dan set default
-        if (empty($mode)) {
+        if (empty($mode) || !in_array($mode, ['otomatis', 'manual'])) {
             $mode = 'otomatis';
         }
 
@@ -210,7 +233,7 @@ class ApiController extends ResourceController
             $zona = '-';
         }
 
-        if (empty($pompa)) {
+        if (empty($pompa) || !in_array($pompa, ['on', 'off'])) {
             $pompa = 'off';
         }
 
@@ -230,9 +253,9 @@ class ApiController extends ResourceController
 
         // ✅ PERBAIKAN: Update device
         $deviceModel = new DeviceModel();
-        $device = $deviceModel->find('ESP32-001');
+        $device = $deviceModel->find(self::DEVICE_ID);
         if ($device) {
-            $deviceModel->update('ESP32-001', [
+            $deviceModel->update(self::DEVICE_ID, [
                 'mode' => $mode,
                 'pompa' => $pompa,
                 'zona' => $zona,
@@ -240,7 +263,7 @@ class ApiController extends ResourceController
             ]);
         } else {
             $deviceModel->insert([
-                'id_device' => 'ESP32-001',
+                'id_device' => self::DEVICE_ID,
                 'nama_device' => 'ESP32 Penyiram',
                 'mode' => $mode,
                 'pompa' => $pompa,
@@ -251,14 +274,12 @@ class ApiController extends ResourceController
         }
 
         // ✅ PERBAIKAN: Kirim response dengan nilai pasti
-        return $this->response
-            ->setHeader('Content-Type', 'application/json')
-            ->setJSON([
-                'status' => 'success',
-                'mode' => $mode,
-                'pompa' => $pompa,
-                'zona' => $zona
-            ]);
+        return $this->respond([
+            'status' => 'success',
+            'mode' => $mode,
+            'pompa' => $pompa,
+            'zona' => $zona
+        ]);
     }
 
     // ============================================================
@@ -275,12 +296,12 @@ class ApiController extends ResourceController
         // Data terakhir
         $riwayat = $riwayatModel->orderBy('id_riwayat', 'DESC')->first();
         $kontrol = $kontrolModel->find(1);
-        $device = $deviceModel->find('ESP32-001');
+        $device = $deviceModel->find(self::DEVICE_ID);
 
         // ✅ PERBAIKAN: Jika device tidak ada, buat default
         if (!$device) {
             $deviceModel->insert([
-                'id_device' => 'ESP32-001',
+                'id_device' => self::DEVICE_ID,
                 'nama_device' => 'ESP32 Penyiram',
                 'lokasi' => 'Green House',
                 'status' => 'Offline',
@@ -288,7 +309,7 @@ class ApiController extends ResourceController
                 'pompa' => 'off',
                 'zona' => '-'
             ]);
-            $device = $deviceModel->find('ESP32-001');
+            $device = $deviceModel->find(self::DEVICE_ID);
         }
 
         // ✅ PERBAIKAN: Jika kontrol tidak ada, buat default
@@ -305,27 +326,30 @@ class ApiController extends ResourceController
         if ($device) {
             $lastUpdate = $device['last_update'] ?? date('Y-m-d H:i:s');
             $selisih = time() - strtotime($lastUpdate);
-            $device['online'] = ($selisih <= 30);
+            $device['online'] = ($selisih <= self::TIMEOUT_ONLINE);
             
             // ✅ PERBAIKAN: Tambahkan status untuk view
             $device['is_online'] = $device['online'];
+            $device['last_seen'] = $lastUpdate;
         }
 
         // History untuk grafik
         $history = $riwayatModel
             ->select('tanggal, suhu, kelembapan, tanah_a, tanah_b, tanah_c, tanah_d')
             ->orderBy('id_riwayat', 'DESC')
-            ->limit(20)
+            ->limit(self::MAX_HISTORY)
             ->find();
 
-        return $this->response
-            ->setHeader('Content-Type', 'application/json')
-            ->setJSON([
-                'riwayat' => $riwayat,
-                'kontrol' => $kontrol,
-                'device' => $device,
-                'history' => array_reverse($history)
-            ]);
+        // ✅ PERBAIKAN: Tambahkan statistik
+        $statistics = $this->getStatistics($riwayatModel);
+
+        return $this->respond([
+            'riwayat' => $riwayat,
+            'kontrol' => $kontrol,
+            'device' => $device,
+            'history' => array_reverse($history),
+            'statistics' => $statistics
+        ]);
     }
 
     // ============================================================
@@ -335,9 +359,23 @@ class ApiController extends ResourceController
     // ============================================================
     public function updateKontrol()
     {
+        // ✅ PERBAIKAN: Validasi API Key
+        $apiKey = $this->request->getPost('api_key');
+        if ($apiKey !== self::API_KEY) {
+            return $this->failUnauthorized('Invalid API Key');
+        }
+
         $mode = $this->request->getPost('mode') ?? 'otomatis';
         $pompa = $this->request->getPost('pompa') ?? 'off';
         $zona = $this->request->getPost('zona') ?? '-';
+
+        // ✅ PERBAIKAN: Validasi nilai
+        if (!in_array($mode, ['otomatis', 'manual'])) {
+            $mode = 'otomatis';
+        }
+        if (!in_array($pompa, ['on', 'off'])) {
+            $pompa = 'off';
+        }
 
         $kontrolModel = new KontrolModel();
         $kontrol = $kontrolModel->find(1);
@@ -350,12 +388,66 @@ class ApiController extends ResourceController
             $kontrolModel->insert($data);
         }
 
-        return $this->response
-            ->setHeader('Content-Type', 'application/json')
-            ->setJSON([
-                'status' => 'success',
-                'message' => 'Kontrol updated',
-                'data' => $data
-            ]);
+        return $this->respond([
+            'status' => 'success',
+            'message' => 'Kontrol updated',
+            'data' => $data
+        ]);
+    }
+
+    // ============================================================
+    // 5. CLEANUP OLD DATA
+    // ============================================================
+    private function cleanupOldData($riwayatModel)
+    {
+        $tanggalBatas = date('Y-m-d H:i:s', strtotime('-7 days'));
+        $riwayatModel->where('tanggal <', $tanggalBatas)->delete();
+    }
+
+    // ============================================================
+    // 6. VALIDATE RANGE
+    // ============================================================
+    private function validateRange($value, $min, $max)
+    {
+        $value = floatval($value);
+        return max($min, min($max, $value));
+    }
+
+    // ============================================================
+    // 7. GET STATISTICS
+    // ============================================================
+    private function getStatistics($riwayatModel)
+    {
+        $today = date('Y-m-d');
+        
+        // Total monitoring hari ini
+        $monitoringHariIni = $riwayatModel
+            ->where('DATE(tanggal)', $today)
+            ->countAllResults();
+            
+        // Total penyiraman hari ini
+        $penyiramanHariIni = $riwayatModel
+            ->where('DATE(tanggal)', $today)
+            ->where('durasi_penyiraman >', 0)
+            ->countAllResults();
+            
+        // Average suhu hari ini
+        $avgSuhu = $riwayatModel
+            ->select('AVG(suhu) as avg_suhu')
+            ->where('DATE(tanggal)', $today)
+            ->first();
+            
+        // Average kelembapan hari ini
+        $avgKelembapan = $riwayatModel
+            ->select('AVG(kelembapan) as avg_kelembapan')
+            ->where('DATE(tanggal)', $today)
+            ->first();
+
+        return [
+            'monitoring_hari_ini' => $monitoringHariIni,
+            'penyiraman_hari_ini' => $penyiramanHariIni,
+            'avg_suhu' => round($avgSuhu['avg_suhu'] ?? 0, 1),
+            'avg_kelembapan' => round($avgKelembapan['avg_kelembapan'] ?? 0, 1)
+        ];
     }
 }
