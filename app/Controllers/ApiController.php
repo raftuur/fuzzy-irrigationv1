@@ -25,6 +25,8 @@ class ApiController extends ResourceController
 
     // ============================================================
     // 1. SENSOR - ESP32 kirim data sensor ke web
+    //    Method : POST
+    //    Endpoint : /api/sensor
     // ============================================================
     public function sensor()
     {
@@ -71,6 +73,7 @@ class ApiController extends ResourceController
         $kontrolModel = new KontrolModel();
         $kontrol = $kontrolModel->find(1);
 
+        // ✅ PERBAIKAN: Pastikan data ada
         if (!$kontrol) {
             $kontrolModel->insert([
                 'mode' => 'otomatis',
@@ -80,16 +83,23 @@ class ApiController extends ResourceController
             $kontrol = $kontrolModel->find(1);
         }
 
+        // ✅ PERBAIKAN: Ambil nilai dengan default
         $mode = $kontrol['mode'] ?? 'otomatis';
         
+        // ✅ PERBAIKAN: Log untuk debug
+        log_message('debug', 'SENSOR: mode=' . $mode . ', pompaStatus=' . $pompaStatus . ', zonaEsp=' . $zonaDariEsp);
+
         // ---------- TENTUKAN POMPA & ZONA ----------
         if ($mode == 'manual') {
+            // Manual: pakai data dari database
             $pompa = $kontrol['pompa'] ?? 'off';
             $zona = $kontrol['zona'] ?? '-';
         } else {
+            // Otomatis: ESP32 yang menentukan
             $pompa = $pompaStatus;
             $zona = $zonaDariEsp;
 
+            // ✅ PERBAIKAN: Update zona di database jika valid
             if ($zona != '-' && $zona != '' && $zona != null) {
                 $kontrolModel->update(1, [
                     'zona' => $zona,
@@ -117,6 +127,8 @@ class ApiController extends ResourceController
         ];
         
         $riwayatModel->insert($riwayatData);
+
+        // ✅ PERBAIKAN: Hapus data lama (lebih dari 7 hari)
         $this->cleanupOldData($riwayatModel);
 
         // ---------- UPDATE DEVICE ----------
@@ -150,6 +162,8 @@ class ApiController extends ResourceController
 
     // ============================================================
     // 2. KONTROL - ESP32 baca / Dashboard kirim kontrol
+    //    Method : GET (ESP32) / POST (Dashboard)
+    //    Endpoint : /api/kontrol
     // ============================================================
     public function kontrol()
     {
@@ -160,8 +174,10 @@ class ApiController extends ResourceController
         // ==========================
         if ($this->request->getMethod() === 'get') {
 
+            // ✅ PERBAIKAN: Cek dan buat data jika kosong
             $kontrol = $kontrolModel->find(1);
 
+            // Jika tidak ada, buat default
             if (!$kontrol) {
                 $kontrolModel->insert([
                     'mode' => 'otomatis',
@@ -171,13 +187,16 @@ class ApiController extends ResourceController
                 $kontrol = $kontrolModel->find(1);
             }
 
+            // ✅ PERBAIKAN: Pastikan nilai tidak null
             $mode = ($kontrol['mode'] ?? 'otomatis');
             $pompa = ($kontrol['pompa'] ?? 'off');
             $zona = ($kontrol['zona'] ?? '-');
 
-            // ✅ PERBAIKAN: Tambahkan status
+            // ✅ PERBAIKAN: Log untuk debug
+            log_message('debug', 'GET KONTROL: mode=' . $mode . ', pompa=' . $pompa . ', zona=' . $zona);
+
+            // ✅ PERBAIKAN: Kirim response dengan nilai pasti
             return $this->respond([
-                'status' => 'success',  // ← INI PENTING!
                 'mode' => $mode,
                 'pompa' => $pompa,
                 'zona' => $zona
@@ -191,7 +210,16 @@ class ApiController extends ResourceController
         $pompa = $this->request->getPost('pompa');
         $zona = $this->request->getPost('zona');
 
-        // Validasi
+        // ✅ PERBAIKAN: Validasi API Key untuk POST
+        $apiKey = $this->request->getPost('api_key');
+        if ($apiKey && $apiKey !== self::API_KEY) {
+            return $this->failUnauthorized('Invalid API Key');
+        }
+
+        // ✅ PERBAIKAN: Log POST
+        log_message('debug', 'POST KONTROL: mode=' . $mode . ', pompa=' . $pompa . ', zona=' . $zona);
+
+        // ✅ PERBAIKAN: Validasi dan set default
         if (empty($mode) || !in_array($mode, ['otomatis', 'manual'])) {
             $mode = 'otomatis';
         }
@@ -209,7 +237,7 @@ class ApiController extends ResourceController
             $pompa = 'off';
         }
 
-        // Simpan ke database
+        // ✅ PERBAIKAN: Simpan ke database
         $kontrol = $kontrolModel->find(1);
         $data = [
             'mode' => $mode, 
@@ -223,7 +251,7 @@ class ApiController extends ResourceController
             $kontrolModel->insert($data);
         }
 
-        // Update device
+        // ✅ PERBAIKAN: Update device
         $deviceModel = new DeviceModel();
         $device = $deviceModel->find(self::DEVICE_ID);
         if ($device) {
@@ -233,8 +261,19 @@ class ApiController extends ResourceController
                 'zona' => $zona,
                 'last_update' => date('Y-m-d H:i:s')
             ]);
+        } else {
+            $deviceModel->insert([
+                'id_device' => self::DEVICE_ID,
+                'nama_device' => 'ESP32 Penyiram',
+                'mode' => $mode,
+                'pompa' => $pompa,
+                'zona' => $zona,
+                'status' => 'Online',
+                'last_update' => date('Y-m-d H:i:s')
+            ]);
         }
 
+        // ✅ PERBAIKAN: Kirim response dengan nilai pasti
         return $this->respond([
             'status' => 'success',
             'mode' => $mode,
@@ -245,6 +284,8 @@ class ApiController extends ResourceController
 
     // ============================================================
     // 3. DASHBOARD - Ambil data untuk dashboard
+    //    Method : GET
+    //    Endpoint : /api/dashboard
     // ============================================================
     public function dashboard()
     {
@@ -257,7 +298,7 @@ class ApiController extends ResourceController
         $kontrol = $kontrolModel->find(1);
         $device = $deviceModel->find(self::DEVICE_ID);
 
-        // ✅ PERBAIKAN: Buat default jika tidak ada
+        // ✅ PERBAIKAN: Jika device tidak ada, buat default
         if (!$device) {
             $deviceModel->insert([
                 'id_device' => self::DEVICE_ID,
@@ -271,6 +312,7 @@ class ApiController extends ResourceController
             $device = $deviceModel->find(self::DEVICE_ID);
         }
 
+        // ✅ PERBAIKAN: Jika kontrol tidak ada, buat default
         if (!$kontrol) {
             $kontrolModel->insert([
                 'mode' => 'otomatis',
@@ -285,6 +327,8 @@ class ApiController extends ResourceController
             $lastUpdate = $device['last_update'] ?? date('Y-m-d H:i:s');
             $selisih = time() - strtotime($lastUpdate);
             $device['online'] = ($selisih <= self::TIMEOUT_ONLINE);
+            
+            // ✅ PERBAIKAN: Tambahkan status untuk view
             $device['is_online'] = $device['online'];
             $device['last_seen'] = $lastUpdate;
         }
@@ -296,29 +340,36 @@ class ApiController extends ResourceController
             ->limit(self::MAX_HISTORY)
             ->find();
 
-        // Statistik
+        // ✅ PERBAIKAN: Tambahkan statistik
         $statistics = $this->getStatistics($riwayatModel);
 
-        // ✅ PERBAIKAN: Response dengan status
         return $this->respond([
-            'status' => 'success',  // ← INI PENTING!
-            'riwayat' => $riwayat ?: [],
-            'kontrol' => $kontrol ?: [],
-            'device' => $device ?: [],
+            'riwayat' => $riwayat,
+            'kontrol' => $kontrol,
+            'device' => $device,
             'history' => array_reverse($history),
             'statistics' => $statistics
         ]);
     }
 
     // ============================================================
-    // 4. UPDATE KONTROL VIA WEB
+    // 4. UPDATE KONTROL VIA WEB (Alternate endpoint)
+    //    Method : POST
+    //    Endpoint : /api/update-kontrol
     // ============================================================
     public function updateKontrol()
     {
+        // ✅ PERBAIKAN: Validasi API Key
+        $apiKey = $this->request->getPost('api_key');
+        if ($apiKey !== self::API_KEY) {
+            return $this->failUnauthorized('Invalid API Key');
+        }
+
         $mode = $this->request->getPost('mode') ?? 'otomatis';
         $pompa = $this->request->getPost('pompa') ?? 'off';
         $zona = $this->request->getPost('zona') ?? '-';
 
+        // ✅ PERBAIKAN: Validasi nilai
         if (!in_array($mode, ['otomatis', 'manual'])) {
             $mode = 'otomatis';
         }
@@ -369,20 +420,24 @@ class ApiController extends ResourceController
     {
         $today = date('Y-m-d');
         
+        // Total monitoring hari ini
         $monitoringHariIni = $riwayatModel
             ->where('DATE(tanggal)', $today)
             ->countAllResults();
             
+        // Total penyiraman hari ini
         $penyiramanHariIni = $riwayatModel
             ->where('DATE(tanggal)', $today)
             ->where('durasi_penyiraman >', 0)
             ->countAllResults();
             
+        // Average suhu hari ini
         $avgSuhu = $riwayatModel
             ->select('AVG(suhu) as avg_suhu')
             ->where('DATE(tanggal)', $today)
             ->first();
             
+        // Average kelembapan hari ini
         $avgKelembapan = $riwayatModel
             ->select('AVG(kelembapan) as avg_kelembapan')
             ->where('DATE(tanggal)', $today)
