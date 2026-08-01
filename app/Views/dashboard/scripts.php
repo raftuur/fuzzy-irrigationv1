@@ -370,63 +370,55 @@ fetch("<?= base_url('api/dashboard') ?>")
    Event
 =========================== */
 
-document.getElementById("btnAuto").onclick=function(){
+document.getElementById("btnAuto").onclick = function(){
 
     this.classList.add("active");
     document.getElementById("btnManual").classList.remove("active");
 
     simpanKontrol({
 
-        mode:"otomatis",
-        pompa:document.getElementById("pompaStatus").innerText.toLowerCase(),
-        zona:document.getElementById("zonaSelect").value
+        mode : "otomatis",
+        pompa : "off",
+        zona : "-"
 
     });
 
 };
 
-document.getElementById("btnManual").onclick=function(){
+document.getElementById("btnManual").onclick = function(){
 
     this.classList.add("active");
     document.getElementById("btnAuto").classList.remove("active");
 
     simpanKontrol({
 
-        mode:"manual",
-        pompa:document.getElementById("pompaStatus").innerText.toLowerCase(),
-        zona:document.getElementById("zonaSelect").value
+        mode : "manual",
+        pompa : "off",
+        zona : "-"
 
     });
 
 };
 
-document.getElementById("btnPompaOn").onclick=function(){
+document.getElementById("btnPompaOn").onclick = function(){
 
     simpanKontrol({
 
-        mode: document.getElementById("btnManual").classList.contains("active")
-            ? "manual"
-            : "otomatis",
-
-        pompa:"on",
-
-        zona:document.getElementById("zonaSelect").value
+        mode : "manual",
+        pompa : "on",
+        zona : document.getElementById("zonaSelect").value
 
     });
 
 };
 
-document.getElementById("btnPompaOff").onclick=function(){
+document.getElementById("btnPompaOff").onclick = function(){
 
     simpanKontrol({
 
-        mode: document.getElementById("btnManual").classList.contains("active")
-            ? "manual"
-            : "otomatis",
-
-        pompa:"off",
-
-        zona:document.getElementById("zonaSelect").value
+        mode : "manual",
+        pompa : "off",
+        zona : document.getElementById("zonaSelect").value
 
     });
 
