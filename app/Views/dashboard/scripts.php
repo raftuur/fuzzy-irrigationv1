@@ -122,29 +122,18 @@ function loadDashboard(){
         const k = data.kontrol;
         const d = data.device;
 
-        // ======================
-        // UPDATE DEVICE INFO DARI API
-        // ======================
         if (d) {
             if (document.getElementById("deviceName")) {
-                document.getElementById("deviceName").textContent =
-                    d.id_device ?? "ESP32-001";
+                document.getElementById("deviceName").textContent = d.id_device ?? "ESP32-001";
             }
-
             if (document.getElementById("firmwareVersion")) {
-                document.getElementById("firmwareVersion").textContent =
-                    d.firmware ?? "v1.0";
+                document.getElementById("firmwareVersion").textContent = d.firmware ?? "v1.0";
             }
         }
 
-        // ======================
-        // VALIDASI DEVICE
-        // ======================
         if (!d) return;
 
-        // ======================
-        // 1. STATUS ONLINE/OFFLINE
-        // ======================
+        // Status Online/Offline
         const systemStatus = document.getElementById("systemStatus");
         const systemBadge = document.getElementById("systemBadge");
         const esp32Status = document.getElementById("esp32Status");
@@ -165,15 +154,12 @@ function loadDashboard(){
             esp32Status.className = "status-value text-danger";
         }
 
-        // ======================
-        // 2. TOMBOL AUTO/MANUAL DARI DEVICE
-        // ======================
         if(!k) return;
 
+        // Tombol AUTO/MANUAL
         const btnAuto = document.getElementById("btnAuto");
         const btnManual = document.getElementById("btnManual");
 
-        // ========== PERBAIKAN: Gunakan mode dari device, bukan kontrol ==========
         if(d.mode === "otomatis"){
             btnAuto.classList.add("active");
             btnManual.classList.remove("active");
@@ -184,36 +170,20 @@ function loadDashboard(){
             setManualControl(true);
         }
 
-        // ======================
-        // 3. ZONA SELECT
-        // ======================
-        // ========== PERBAIKAN: Jika zona '-' atau null, tampilkan '-' ==========
+        // Zona Select
         var zonaDisplay = (d.zona == '-' || d.zona == null) ? '-' : d.zona;
         document.getElementById("zonaSelect").value = (d.zona != '-' && d.zona != null) ? d.zona : 'A';
 
-        // ======================
-        // 4. STATUS DARI DEVICE
-        // ======================
         if(d){
-            // Mode dengan huruf kapital
-            document.getElementById("mode").innerHTML =
-                d.mode === "manual" ? "Manual" : "Otomatis";
-
-            // Status Pompa dengan teks jelas
-            document.getElementById("pompa").innerHTML =
-                d.pompa === "on" ? "Menyala" : "Mati";
-
-            // Zona dengan format "Zona A"
+            document.getElementById("mode").innerHTML = d.mode === "manual" ? "Manual" : "Otomatis";
+            document.getElementById("pompa").innerHTML = d.pompa === "on" ? "Menyala" : "Mati";
             var zonaTampil = (d.zona == '-' || d.zona == null) ? '-' : "Zona " + d.zona;
             document.getElementById("zona").innerHTML = zonaTampil;
-
             document.getElementById("zonaAktif").innerHTML = zonaTampil;
 
             document.getElementById("pompaStatus").innerHTML = (d.pompa === "on") ? "ON" : "OFF";
-            document.getElementById("pompaStatus").className =
-                d.pompa === "on" ? "badge bg-success" : "badge bg-danger";
+            document.getElementById("pompaStatus").className = d.pompa === "on" ? "badge bg-success" : "badge bg-danger";
 
-            // Update tombol pompa
             const btnOn = document.getElementById("btnPompaOn");
             const btnOff = document.getElementById("btnPompaOff");
 
@@ -228,30 +198,21 @@ function loadDashboard(){
                 btnOn.classList.add("btn-inactive");
             }
 
-            // ======================
-            // 5. LAST UPDATE DARI DEVICE
-            // ======================
             document.getElementById("lastUpdate").innerHTML = d.last_update;
             document.getElementById("lastUpdatePanel").innerHTML = d.last_update;
-
             document.getElementById("lastUpdateSuhu").innerHTML = "Update: " + d.last_update;
             document.getElementById("lastUpdateKelembapan").innerHTML = "Update: " + d.last_update;
             document.getElementById("lastUpdateCuaca").innerHTML = "Update: " + d.last_update;
         }
 
-        // ======================
-        // 6. DATA RIWAYAT
-        // ======================
         if(!r) return;
 
         document.getElementById("durasiPompa").innerHTML = r.durasi_penyiraman + " Detik";
-
         counter("suhu", r.suhu);
         counter("kelembapan", r.kelembapan);
 
         document.getElementById("hujan").innerHTML = r.status_hujan.toUpperCase();
 
-        // Update badge cuaca
         const badgeCuaca = document.getElementById("badgeCuaca");
         if (r.status_hujan.toLowerCase() === "hujan") {
             badgeCuaca.className = "badge bg-info";
@@ -271,12 +232,9 @@ function loadDashboard(){
         updateSoilStatus("C", r.tanah_c);
         updateSoilStatus("D", r.tanah_d);
 
-        const avg = Math.round(
-            (Number(r.tanah_a) + Number(r.tanah_b) + Number(r.tanah_c) + Number(r.tanah_d)) / 4
-        );
+        const avg = Math.round((Number(r.tanah_a) + Number(r.tanah_b) + Number(r.tanah_c) + Number(r.tanah_d)) / 4);
         document.getElementById("avgSoil").innerHTML = avg + "%";
 
-        // Badge Suhu
         const badgeSuhu = document.getElementById("badgeSuhu");
         const suhuValue = parseFloat(r.suhu) || 0;
         if (suhuValue < 25) {
@@ -290,7 +248,6 @@ function loadDashboard(){
             badgeSuhu.innerText = "Tinggi";
         }
 
-        // Badge Kelembapan
         const badgeKelembapan = document.getElementById("badgeKelembapan");
         const kelembapanValue = parseFloat(r.kelembapan) || 0;
         if (kelembapanValue < 40) {
@@ -344,8 +301,6 @@ document.getElementById("btnManual").onclick = function(){
 // Tombol Pompa ON
 document.getElementById("btnPompaOn").onclick = function(){
     var zona = document.getElementById("zonaSelect").value;
-    
-    // Pastikan mode manual
     document.getElementById("btnManual").click();
     
     simpanKontrol({
@@ -366,13 +321,12 @@ document.getElementById("btnPompaOff").onclick = function(){
     });
 };
 
-// Zona Select - Update saat manual
+// Zona Select
 document.getElementById("zonaSelect").onchange = function(){
     var zona = this.value;
     var btnManual = document.getElementById("btnManual");
     
     if (btnManual.classList.contains("active")) {
-        // Jika mode manual, update zona
         var statusPompa = document.getElementById("pompaStatus");
         var pompaStatus = statusPompa ? (statusPompa.innerHTML === "ON" ? "on" : "off") : "off";
         

@@ -62,10 +62,9 @@ class ApiController extends ResourceController
 
         $tanggal = date('Y-m-d H:i:s');
 
-        // ========== AMBIL DATA KONTROL TERBARU ==========
+        // ========== AMBIL DATA KONTROL ==========
         $current = $kontrol->find(1);
 
-        // ========== PERBAIKAN: Jika data kosong, buat default ==========
         if (!$current) {
             $kontrol->insert([
                 'mode' => 'otomatis',
@@ -78,7 +77,6 @@ class ApiController extends ResourceController
         if ($current) {
             $mode = $current['mode'] ?? 'otomatis';
             
-            // ========== PERBAIKAN: Mode Manual vs Otomatis ==========
             if ($mode == 'manual') {
                 // Mode Manual: Gunakan data dari database
                 $pompa = $current['pompa'] ?? 'off';
@@ -88,7 +86,7 @@ class ApiController extends ResourceController
                 $pompa = $this->request->getVar('p') ?? 'off';
                 $zona = $this->request->getVar('z') ?? '-';
                 
-                // ========== UPDATE ZONA DI DATABASE ==========
+                // Update zona di database
                 if ($zona != '-' && $zona != null && $zona != '') {
                     $kontrol->update(1, [
                         'zona' => $zona,
@@ -123,7 +121,6 @@ class ApiController extends ResourceController
         $db = \Config\Database::connect();
         $db->transStart();
 
-        // Simpan riwayat
         try {
             $riwayat->insert($data);
         } catch (\Throwable $e) {
@@ -178,10 +175,8 @@ class ApiController extends ResourceController
         // ==========================
         if ($this->request->getMethod() === 'get') {
 
-            // ========== PERBAIKAN: Ambil data dengan pasti ==========
             $last = $kontrol->find(1);
 
-            // ========== PERBAIKAN: Jika tidak ada, buat default ==========
             if (!$last) {
                 $kontrol->insert([
                     'mode' => 'otomatis',
@@ -191,12 +186,10 @@ class ApiController extends ResourceController
                 $last = $kontrol->find(1);
             }
 
-            // ========== PERBAIKAN: Pastikan data tidak null ==========
             $mode = $last['mode'] ?? 'otomatis';
             $pompa = $last['pompa'] ?? 'off';
             $zona = $last['zona'] ?? 'A';
 
-            // ========== PERBAIKAN: Log untuk debug ==========
             log_message('error', 'GET KONTROL: mode=' . $mode . ', pompa=' . $pompa . ', zona=' . $zona);
 
             return $this->response->setJSON([
@@ -215,7 +208,6 @@ class ApiController extends ResourceController
         $pompa = $this->request->getPost('pompa');
         $zona  = $this->request->getPost('zona');
 
-        // ========== PERBAIKAN: Log POST ==========
         log_message('error', 'POST KONTROL: mode=' . $mode . ', pompa=' . $pompa . ', zona=' . $zona);
 
         // ========== VALIDASI ==========
@@ -229,7 +221,6 @@ class ApiController extends ResourceController
             $pompa = 'off';
         }
 
-        // ========== PERBAIKAN: Update dengan pasti ==========
         $last = $kontrol->find(1);
 
         $data = [
@@ -244,7 +235,7 @@ class ApiController extends ResourceController
             $kontrol->insert($data);
         }
 
-        // ========== PERBAIKAN: Update device ==========
+        // ========== UPDATE DEVICE ==========
         $deviceModel = new DeviceModel();
         $device = $deviceModel->find('ESP32-001');
 
@@ -290,7 +281,6 @@ class ApiController extends ResourceController
 
         $lastDevice = $device->find('ESP32-001');
 
-        // ========== PERBAIKAN: Jika device null, buat default ==========
         if (!$lastDevice) {
             $device->insert([
                 'id_device' => 'ESP32-001',
@@ -304,9 +294,6 @@ class ApiController extends ResourceController
             $lastDevice = $device->find('ESP32-001');
         }
 
-        // ======================
-        // HITUNG STATUS ONLINE
-        // ======================
         if ($lastDevice) {
             $selisih = time() - strtotime($lastDevice['last_update'] ?? date('Y-m-d H:i:s'));
             $lastDevice['online'] = ($selisih <= 30);
