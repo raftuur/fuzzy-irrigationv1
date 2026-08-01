@@ -22,7 +22,9 @@ class ApiController extends ResourceController
         // ---------- VALIDASI API KEY ----------
         $apiKey = $this->request->getVar('api_key');
         if ($apiKey !== 'FuzzyIrigasi2026') {
-            return $this->response->setStatusCode(401)->setBody('INVALID_API_KEY');
+            return $this->response
+                ->setStatusCode(401)
+                ->setBody('INVALID_API_KEY');
         }
 
         // ---------- AMBIL DATA ----------
@@ -40,9 +42,13 @@ class ApiController extends ResourceController
         $firmware = $this->request->getPost('firmware') ?? 'v1.0';
 
         // ---------- VALIDASI DATA ----------
-        if ($a === null || $b === null || $c === null || $d === null || 
-            $suhu === null || $hum === null || $rain === null) {
-            return $this->response->setStatusCode(400)->setBody('NO_DATA_RECEIVED');
+        if (
+            $a === null || $b === null || $c === null || $d === null ||
+            $suhu === null || $hum === null || $rain === null
+        ) {
+            return $this->response
+                ->setStatusCode(400)
+                ->setBody('NO_DATA_RECEIVED');
         }
 
         // ---------- TENTUKAN STATUS HUJAN ----------
@@ -53,7 +59,11 @@ class ApiController extends ResourceController
         $kontrol = $kontrolModel->find(1);
 
         if (!$kontrol) {
-            $kontrolModel->insert(['mode' => 'otomatis', 'pompa' => 'off', 'zona' => '-']);
+            $kontrolModel->insert([
+                'mode' => 'otomatis',
+                'pompa' => 'off',
+                'zona' => '-'
+            ]);
             $kontrol = $kontrolModel->find(1);
         }
 
@@ -63,7 +73,7 @@ class ApiController extends ResourceController
         if ($mode == 'manual') {
             // Manual: pakai data dari database
             $pompa = $kontrol['pompa'] ?? 'off';
-            $zona = $kontrol['zona'] ?? 'A';
+            $zona = $kontrol['zona'] ?? '-';
         } else {
             // Otomatis: ESP32 yang menentukan
             $pompa = $pompaStatus;
@@ -71,7 +81,10 @@ class ApiController extends ResourceController
 
             // Update zona di database jika valid
             if ($zona != '-' && $zona != '' && $zona != null) {
-                $kontrolModel->update(1, ['zona' => $zona, 'pompa' => $pompa]);
+                $kontrolModel->update(1, [
+                    'zona' => $zona,
+                    'pompa' => $pompa
+                ]);
             }
         }
 
@@ -131,39 +144,64 @@ class ApiController extends ResourceController
     {
         $kontrolModel = new KontrolModel();
 
-        // ---------- GET: ESP32 BACA KONTROL ----------
+        // ==========================
+        // GET : ESP32 BACA KONTROL
+        // ==========================
         if ($this->request->getMethod() === 'get') {
+
+            // Ambil data dari database
             $kontrol = $kontrolModel->find(1);
 
+            // Jika tidak ada, buat default
             if (!$kontrol) {
-                $kontrolModel->insert(['mode' => 'otomatis', 'pompa' => 'off', 'zona' => '-']);
+                $kontrolModel->insert([
+                    'mode' => 'otomatis',
+                    'pompa' => 'off',
+                    'zona' => '-'
+                ]);
                 $kontrol = $kontrolModel->find(1);
             }
 
-            return $this->response->setJSON([
-                'status' => 'success',
-                'mode' => $kontrol['mode'] ?? 'otomatis',
-                'pompa' => $kontrol['pompa'] ?? 'off',
-                'zona' => $kontrol['zona'] ?? '-'
-            ]);
+            // ========== PERBAIKAN: Pastikan nilai tidak null ==========
+            $mode = ($kontrol['mode'] ?? 'otomatis');
+            $pompa = ($kontrol['pompa'] ?? 'off');
+            $zona = ($kontrol['zona'] ?? '-');
+
+            // ========== PERBAIKAN: Log untuk debug ==========
+            log_message('error', 'GET KONTROL: mode=' . $mode . ', pompa=' . $pompa . ', zona=' . $zona);
+
+            // ========== PERBAIKAN: Kirim response dengan nilai pasti ==========
+            return $this->response
+                ->setHeader('Content-Type', 'application/json')
+                ->setJSON([
+                    'status' => 'success',
+                    'mode' => $mode,
+                    'pompa' => $pompa,
+                    'zona' => $zona
+                ]);
         }
 
-        // ---------- POST: DASHBOARD KIRIM KONTROL ----------
+        // ==========================
+        // POST : DASHBOARD KIRIM KONTROL
+        // ==========================
         $mode = $this->request->getPost('mode');
         $pompa = $this->request->getPost('pompa');
         $zona = $this->request->getPost('zona');
 
-        // Validasi
+        // ========== PERBAIKAN: Log POST ==========
+        log_message('error', 'POST KONTROL: mode=' . $mode . ', pompa=' . $pompa . ', zona=' . $zona);
+
+        // ========== PERBAIKAN: Validasi ==========
         if ($mode == 'otomatis') {
             $zona = '-';
             $pompa = 'off';
         }
 
-        if ($zona == '-' || $zona == '' || $zona == null) {
+        if ($zona == '' || $zona == null) {
             $zona = '-';
         }
 
-        // Simpan ke database
+        // ========== PERBAIKAN: Simpan ke database ==========
         $kontrol = $kontrolModel->find(1);
         $data = ['mode' => $mode, 'pompa' => $pompa, 'zona' => $zona];
 
@@ -173,7 +211,7 @@ class ApiController extends ResourceController
             $kontrolModel->insert($data);
         }
 
-        // Update device
+        // ========== PERBAIKAN: Update device ==========
         $deviceModel = new DeviceModel();
         $deviceModel->update('ESP32-001', [
             'mode' => $mode,
@@ -182,12 +220,15 @@ class ApiController extends ResourceController
             'last_update' => date('Y-m-d H:i:s')
         ]);
 
-        return $this->response->setJSON([
-            'status' => 'success',
-            'mode' => $mode,
-            'pompa' => $pompa,
-            'zona' => $zona
-        ]);
+        // ========== PERBAIKAN: Kirim response dengan nilai pasti ==========
+        return $this->response
+            ->setHeader('Content-Type', 'application/json')
+            ->setJSON([
+                'status' => 'success',
+                'mode' => $mode,
+                'pompa' => $pompa,
+                'zona' => $zona
+            ]);
     }
 
     // ============================================================
@@ -233,11 +274,13 @@ class ApiController extends ResourceController
             ->limit(20)
             ->find();
 
-        return $this->response->setJSON([
-            'riwayat' => $riwayat,
-            'kontrol' => $kontrol,
-            'device' => $device,
-            'history' => array_reverse($history)
-        ]);
+        return $this->response
+            ->setHeader('Content-Type', 'application/json')
+            ->setJSON([
+                'riwayat' => $riwayat,
+                'kontrol' => $kontrol,
+                'device' => $device,
+                'history' => array_reverse($history)
+            ]);
     }
 }
